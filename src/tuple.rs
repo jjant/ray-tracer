@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+
+use crate::misc::approx_equal;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Copy, Debug)]
@@ -20,6 +22,7 @@ impl Tuple {
     pub fn vector(x: f64, y: f64, z: f64) -> Self {
         Self::new(x, y, z, 0.0)
     }
+
     pub fn is_point(self) -> bool {
         approx_equal(self.w, 1.0)
     }
@@ -260,10 +263,4 @@ mod tests {
         assert_eq!(a.cross(b), Tuple::vector(-1., 2., -1.));
         assert_eq!(b.cross(a), Tuple::vector(1., -2., 1.));
     }
-}
-
-fn approx_equal(a: f64, b: f64) -> bool {
-    let dp = 5;
-    let p = 10f64.powi(-(dp as i32));
-    (a - b).abs() < p
 }
