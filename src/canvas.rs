@@ -7,6 +7,7 @@ pub struct Canvas {
 }
 
 const MAX_COLOR_VALUE: i32 = 255;
+const MAX_PPM_LINE_LENGTH: usize = 70;
 
 impl Canvas {
     pub fn new(width: usize, height: usize) -> Self {
@@ -37,23 +38,49 @@ impl Canvas {
             .collect::<Vec<_>>()
             .join("\n");
 
-        ppm_header + "\n" + &ppm_body
+        ppm_header + "\n" + &ppm_body + "\n"
     }
 }
 
 fn process_row(row: &[Color]) -> String {
     row.iter()
-        .map(|pixel| {
-            let scaled_pixel = *pixel * (MAX_COLOR_VALUE as f64);
-
-            let red = scaled_pixel.red.clamp(0., MAX_COLOR_VALUE as f64).round() as i16;
-            let green = scaled_pixel.green.clamp(0., MAX_COLOR_VALUE as f64).round() as i16;
-            let blue = scaled_pixel.blue.clamp(0., MAX_COLOR_VALUE as f64).round() as i16;
-
-            format!("{} {} {}", red, green, blue)
+        .fold((0, String::new()), |accum, color| {
+            process_pixel(accum, *color)
         })
-        .collect::<Vec<_>>()
-        .join(" ")
+        .1
+}
+
+/// Split rows of characters if the lines are longer than MAX_PPM_LINE_LENGTH
+fn process_pixel(
+    (mut char_count, mut result_string): (usize, String),
+    pixel: Color,
+) -> (usize, String) {
+    let scaled_pixel = pixel * (MAX_COLOR_VALUE as f64);
+
+    let red = format_scaled_color(scaled_pixel.red);
+    let green = format_scaled_color(scaled_pixel.green);
+    let blue = format_scaled_color(scaled_pixel.blue);
+
+    for component in [red, green, blue].iter() {
+        if char_count + component.len() + 1 > MAX_PPM_LINE_LENGTH {
+            result_string += "\n";
+            char_count = 0;
+        } else if char_count != 0 {
+            result_string += " ";
+            char_count += 1;
+        }
+        result_string += &component;
+        char_count += component.len();
+    }
+
+    (char_count, result_string)
+}
+
+fn format_scaled_color(color_component: f64) -> String {
+    format!(
+        "{}",
+        color_component.clamp(0., MAX_COLOR_VALUE as f64).round() as i16
+    )
 }
 
 #[cfg(test)]
@@ -112,6 +139,32 @@ mod tests {
         let expected_body = "255 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n0 0 0 0 0 0 0 128 0 0 0 0 0 0 0\n0 0 0 0 0 0 0 0 0 0 0 0 0 0 255\n";
 
         assert_eq!(ppm_body, expected_body);
+    }
+
+    #[test]
+    fn splitting_long_lines_in_ppm_files() {
+        let mut c = Canvas::new(10, 2);
+
+        c.pixels.fill(Color::new(1., 0.8, 0.6));
+
+        let ppm = c.to_ppm();
+
+        let ppm_body = get_lines(&ppm, 3, 6);
+        let expected_body = "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204
+153 255 204 153 255 204 153 255 204 153 255 204 153
+255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204
+153 255 204 153 255 204 153 255 204 153 255 204 153
+";
+
+        assert_eq!(ppm_body, expected_body);
+    }
+
+    #[test]
+    fn ppm_files_are_terminated_by_a_newline_character() {
+        let c = Canvas::new(5, 3);
+        let ppm = c.to_ppm();
+
+        assert_eq!(ppm.chars().last().unwrap(), '\n');
     }
 
     /// Returns the lines in the range [start, end] (inclusive!!!)

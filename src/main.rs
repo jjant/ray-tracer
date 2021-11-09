@@ -1,8 +1,7 @@
-mod tuple;
-use tuple::Tuple;
 mod canvas;
 mod color;
 mod misc;
+mod tuple;
 use canvas::Canvas;
 use color::Color;
 
