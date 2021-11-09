@@ -5,6 +5,7 @@ mod tuple;
 use canvas::Canvas;
 use color::Color;
 use tuple::Tuple;
+mod matrix;
 
 #[derive(Clone, Copy, Debug)]
 struct Projectile {
