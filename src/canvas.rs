@@ -1,8 +1,8 @@
 use crate::color::Color;
 
 pub struct Canvas {
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     pixels: Vec<Color>,
 }
 
@@ -20,12 +20,29 @@ impl Canvas {
         }
     }
 
-    pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
-        self.pixels[x + y * self.width] = color;
+    pub fn write_pixel(&mut self, x: i32, y: i32, color: Color) {
+        if let Some(index) = self.get_index(x, y) {
+            self.pixels[index] = color;
+        }
     }
 
-    pub fn pixel_at(&self, x: usize, y: usize) -> Color {
-        self.pixels[x + y * self.width]
+    /// TODO: We should not panic here, but let's see what the book does first.
+    pub fn pixel_at(&self, x: i32, y: i32) -> Color {
+        if let Some(index) = self.get_index(x, y) {
+            self.pixels[index]
+        } else {
+            panic!("trying to get a pixel outside bounds")
+        }
+    }
+
+    fn get_index(&self, x: i32, y: i32) -> Option<usize> {
+        let in_bounds = 0 <= x && x < self.width as i32 && 0 <= y && y < self.height as i32;
+
+        if in_bounds {
+            Some(x as usize + y as usize * self.width)
+        } else {
+            None
+        }
     }
 
     pub fn to_ppm(&self) -> String {

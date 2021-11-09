@@ -15,9 +15,17 @@ impl Color {
 
     pub fn white() -> Self {
         Self {
-            red: 1.0,
-            green: 1.0,
-            blue: 1.0,
+            red: 1.,
+            green: 1.,
+            blue: 1.,
+        }
+    }
+
+    pub fn red() -> Self {
+        Self {
+            red: 1.,
+            green: 0.,
+            blue: 0.,
         }
     }
 }
