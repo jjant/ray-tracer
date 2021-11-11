@@ -1,5 +1,3 @@
-#![feature(generic_const_exprs)]
-
 mod canvas;
 mod color;
 mod misc;
@@ -7,7 +5,9 @@ mod tuple;
 use canvas::Canvas;
 use color::Color;
 use tuple::Tuple;
-mod matrix;
+mod matrix2;
+mod matrix3;
+mod matrix4;
 
 #[derive(Clone, Copy, Debug)]
 struct Projectile {
