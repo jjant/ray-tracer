@@ -1,5 +1,5 @@
 #![allow(dead_code, unused_macros)]
-use crate::matrix2::{matrix2, Matrix2};
+use crate::matrix2::Matrix2;
 use crate::misc::{self, approx_equal};
 
 macro_rules! matrix3 { ($(| $( $x:literal )|* |)*) => { { Matrix3::from_rows([ $([ $( $x as f64, )* ],)* ]) } }; }
@@ -98,6 +98,7 @@ impl PartialEq for Matrix3 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix2::matrix2;
     use crate::misc::approx_equal;
 
     #[test]
