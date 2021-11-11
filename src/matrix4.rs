@@ -1,7 +1,8 @@
 #![allow(dead_code, unused_macros)]
+use std::f64::consts::PI;
 use std::ops::Mul;
 
-use crate::matrix3::{matrix3, Matrix3};
+use crate::matrix3::Matrix3;
 use crate::misc::{self, approx_equal};
 use crate::tuple::Tuple;
 
@@ -113,6 +114,55 @@ impl Matrix4 {
 
         sign as f64 * self.minor(row_to_delete, col_to_delete)
     }
+
+    pub fn translation(x: f64, y: f64, z: f64) -> Self {
+        Self::from_rows([
+            [1., 0., 0., x],
+            [0., 1., 0., y],
+            [0., 0., 1., z],
+            [0., 0., 0., 1.],
+        ])
+    }
+
+    pub fn scaling(x: f64, y: f64, z: f64) -> Self {
+        Self::from_rows([
+            [x, 0., 0., 0.],
+            [0., y, 0., 0.],
+            [0., 0., z, 0.],
+            [0., 0., 0., 1.],
+        ])
+    }
+
+    pub fn rotation_x(angle_radians: f64) -> Self {
+        let r = angle_radians;
+        Self::from_rows([
+            [1., 0., 0., 0.],
+            [0., r.cos(), -r.sin(), 0.],
+            [0., r.sin(), r.cos(), 0.],
+            [0., 0., 0., 1.],
+        ])
+    }
+
+    pub fn rotation_y(angle_radians: f64) -> Self {
+        let r = angle_radians;
+        Self::from_rows([
+            [r.cos(), 0., r.sin(), 0.],
+            [0., 1., 0., 0.],
+            [-r.sin(), 0., r.cos(), 0.],
+            [0., 0., 0., 1.],
+        ])
+    }
+
+    pub fn rotation_z(angle_radians: f64) -> Self {
+        let r = angle_radians;
+
+        Self::from_rows([
+            [r.cos(), -r.sin(), 0., 0.],
+            [r.sin(), r.cos(), 0., 0.],
+            [0., 0., 1., 0.],
+            [0., 0., 0., 1.],
+        ])
+    }
 }
 
 impl Mul for Matrix4 {
@@ -202,6 +252,7 @@ impl PartialEq for Matrix4 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix3::matrix3;
     use crate::misc::approx_equal;
 
     #[test]
@@ -481,4 +532,158 @@ mod tests {
         let c = a * b;
         assert_eq!(c * b.inverse().unwrap(), a);
     }
+
+    #[test]
+    fn multiplying_by_a_translation_matrix() {
+        let transform = Matrix4::translation(5., -3., 2.);
+        let p = Tuple::point(-3., 4., 5.);
+
+        assert_eq!(transform * p, Tuple::point(2., 1., 7.));
+    }
+
+    #[test]
+    fn multiplying_by_the_inverse_of_a_translation_matrix() {
+        let transform = Matrix4::translation(5., -3., 2.);
+        let inv = transform.inverse().unwrap();
+        let p = Tuple::point(-3., 4., 5.);
+
+        assert_eq!(inv * p, Tuple::point(-8., 7., 3.));
+    }
+
+    #[test]
+    fn translation_does_not_affect_vectors() {
+        let transform = Matrix4::translation(5., -3., 2.);
+        let v = Tuple::vector(-3., 4., 5.);
+
+        assert_eq!(transform * v, v);
+    }
+
+    #[test]
+    fn a_scaling_matrix_applied_to_a_point() {
+        let transform = Matrix4::scaling(2., 3., 4.);
+        let p = Tuple::point(-4., 6., 8.);
+
+        assert_eq!(transform * p, Tuple::point(-8., 18., 32.));
+    }
+
+    #[test]
+    fn a_scaling_matrix_applied_to_a_vector() {
+        let transform = Matrix4::scaling(2., 3., 4.);
+        let v = Tuple::vector(-4., 6., 8.);
+
+        assert_eq!(transform * v, Tuple::vector(-8., 18., 32.));
+    }
+
+    #[test]
+    fn multiplying_by_the_inverse_of_a_scaling_matrix() {
+        let transform = Matrix4::scaling(2., 3., 4.);
+        let inv = transform.inverse().unwrap();
+        let v = Tuple::vector(-4., 6., 8.);
+
+        assert_eq!(inv * v, Tuple::vector(-2., 2., 2.));
+    }
+
+    #[test]
+    fn reflection_is_scaling_by_a_negative_value() {
+        let transform = Matrix4::scaling(-1., 1., 1.);
+        let p = Tuple::point(2., 3., 4.);
+
+        assert_eq!(transform * p, Tuple::point(-2., 3., 4.));
+    }
+
+    #[test]
+    fn rotating_a_point_around_the_x_axis() {
+        let p = Tuple::point(0., 1., 0.);
+        let half_quarter = Matrix4::rotation_x(PI / 4.);
+        let full_quarter = Matrix4::rotation_x(PI / 2.);
+
+        assert_eq!(
+            half_quarter * p,
+            Tuple::point(0., 2_f64.sqrt() / 2., 2_f64.sqrt() / 2.)
+        );
+        assert_eq!(full_quarter * p, Tuple::point(0., 0., 1.));
+    }
+
+    #[test]
+    fn the_inverse_of_an_x_rotation_rotates_in_the_opposite_direction() {
+        let p = Tuple::point(0., 1., 0.);
+        let half_quarter = Matrix4::rotation_x(PI / 4.);
+        let inv = half_quarter.inverse().unwrap();
+
+        assert_eq!(
+            inv * p,
+            Tuple::point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.)
+        );
+    }
+
+    #[test]
+    fn rotating_a_point_around_the_y_axis() {
+        let p = Tuple::point(0., 0., 1.);
+        let half_quarter = Matrix4::rotation_y(PI / 4.);
+        let full_quarter = Matrix4::rotation_y(PI / 2.);
+
+        assert_eq!(
+            half_quarter * p,
+            Tuple::point(2_f64.sqrt() / 2., 0., 2_f64.sqrt() / 2.)
+        );
+        assert_eq!(full_quarter * p, Tuple::point(1., 0., 0.));
+    }
+
+    #[test]
+    fn rotating_a_point_around_the_z_axis() {
+        let p = Tuple::point(0., 1., 0.);
+        let half_quarter = Matrix4::rotation_z(PI / 4.);
+        let full_quarter = Matrix4::rotation_z(PI / 2.);
+
+        assert_eq!(
+            half_quarter * p,
+            Tuple::point(-2_f64.sqrt() / 2., 2_f64.sqrt() / 2., 0.)
+        );
+        assert_eq!(full_quarter * p, Tuple::point(-1., 0., 0.));
+    }
+
+    // TODO: translate these tests and implement Matrix4::shearing.
+    //
+    // Scenario: A shearing transformation moves x in proportion to z
+    // Given transform ← shearing(0, 1, 0, 0, 0, 0)
+    // And p ← point(2, 3, 4)
+    // Then transform * p = point(6, 3, 4)
+    // Scenario: A shearing transformation moves y in proportion to x
+    // Given transform ← shearing(0, 0, 1, 0, 0, 0)
+    // And p ← point(2, 3, 4)
+    // Then transform * p = point(2, 5, 4)
+    // Scenario: A shearing transformation moves y in proportion to z
+    // Given transform ← shearing(0, 0, 0, 1, 0, 0)
+    // And p ← point(2, 3, 4)
+    // Then transform * p = point(2, 7, 4)
+    // Scenario: A shearing transformation moves z in proportion to x
+    // Given transform ← shearing(0, 0, 0, 0, 1, 0)
+    // And p ← point(2, 3, 4)
+    // Then transform * p = point(2, 3, 6)
+    // Scenario: A shearing transformation moves z in proportion to y
+    // Given transform ← shearing(0, 0, 0, 0, 0, 1)
+    // And p ← point(2, 3, 4)
+    // Then transform * p = point(2, 3, 7)
+    //
+    // Scenario: Individual transformations are applied in sequence
+    // Given p ← point(1, 0, 1)
+    // And A ← rotation_x(π / 2)
+    // And B ← scaling(5, 5, 5)
+    // And C ← translation(10, 5, 7)
+    // # apply rotation first
+    // When p2 ← A * p
+    // Then p2 = point(1, -1, 0)
+    // # then apply scaling
+    // When p3 ← B * p2
+    // Then p3 = point(5, -5, 0)
+    // # then apply translation
+    // When p4 ← C * p3
+    // Then p4 = point(15, 0, 7)
+    // Scenario: Chained transformations must be applied in reverse order
+    // Given p ← point(1, 0, 1)
+    // And A ← rotation_x(π / 2)
+    // And B ← scaling(5, 5, 5)
+    // And C ← translation(10, 5, 7)
+    // When T ← C * B * A
+    // Then T * p = point(15, 0, 7)
 }

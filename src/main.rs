@@ -2,54 +2,50 @@ mod canvas;
 mod color;
 mod misc;
 mod tuple;
+use std::f64::consts::PI;
+
 use canvas::Canvas;
 use color::Color;
 use tuple::Tuple;
 mod matrix2;
 mod matrix3;
 mod matrix4;
+use matrix4::Matrix4;
 
-#[derive(Clone, Copy, Debug)]
-struct Projectile {
-    position: Tuple,
-    velocity: Tuple,
-}
+fn compute_clock() -> Vec<Tuple> {
+    let mut hours = vec![];
+    let twelve_position = Tuple::point(0., 0., 1.);
 
-#[derive(Clone, Copy)]
-struct Environment {
-    gravity: Tuple,
-    wind: Tuple,
-}
+    for hour in 0..12 {
+        let hour_position = Matrix4::rotation_y(PI / 6. * (hour as f64)) * twelve_position;
 
-fn tick(env: Environment, proj: Projectile) -> Projectile {
-    let position = proj.position + proj.velocity;
-    let velocity = proj.velocity + env.gravity + env.wind;
-
-    Projectile { position, velocity }
-}
-
-fn perform_simulation(canvas: &mut Canvas) {
-    let mut projectile = Projectile {
-        position: Tuple::point(0., 1., 0.),
-        velocity: Tuple::vector(1., 1.8, 0.).normalize() * 11.25,
-    };
-    let env = Environment {
-        gravity: Tuple::vector(0., -0.1, 0.),
-        wind: Tuple::vector(-0.01, 0., 0.),
-    };
-
-    while projectile.position.y > 0.0 {
-        let x = projectile.position.x.round() as i32;
-        let y = canvas.height as i32 - projectile.position.y.round() as i32;
-
-        canvas.write_pixel(x, y, Color::red());
-        projectile = tick(env, projectile);
+        hours.push(hour_position);
     }
+
+    hours
 }
 
 fn main() {
-    let mut canvas = Canvas::new(900, 550);
-    perform_simulation(&mut canvas);
+    let width = 400;
+    let height = 400;
+    let mut canvas = Canvas::new(width, height);
+
+    let r = 3. / 8. * width as f64;
+
+    let clock = compute_clock();
+    let transformation = Matrix4::translation(width as f64 / 2., 0., (height as f64) / 2.)
+        * Matrix4::scaling(r, 0., r);
+
+    clock
+        .iter()
+        .map(|point| transformation * *point)
+        .for_each(|transformed_point| {
+            canvas.write_pixel(
+                transformed_point.x as i32,
+                transformed_point.z as i32,
+                Color::red(),
+            )
+        });
 
     println!("{}", canvas.to_ppm());
 }
