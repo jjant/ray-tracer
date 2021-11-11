@@ -1,3 +1,5 @@
+#![feature(generic_const_exprs)]
+
 mod canvas;
 mod color;
 mod misc;
