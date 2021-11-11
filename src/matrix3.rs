@@ -1,3 +1,4 @@
+#![allow(dead_code, unused_macros)]
 use crate::matrix2::{matrix2, Matrix2};
 use crate::misc::{self, approx_equal};
 
