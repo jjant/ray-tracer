@@ -170,8 +170,7 @@ mod tests {
         let expected_body = "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204
 153 255 204 153 255 204 153 255 204 153 255 204 153
 255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204
-153 255 204 153 255 204 153 255 204 153 255 204 153
-";
+153 255 204 153 255 204 153 255 204 153 255 204 153\n";
 
         assert_eq!(ppm_body, expected_body);
     }
@@ -186,9 +185,9 @@ mod tests {
 
     /// Returns the lines in the range [start, end] (inclusive!!!)
     fn get_lines(s: &str, start: usize, end: usize) -> String {
-        s.lines()
+        s.split_inclusive("\n")
             .skip(start)
             .take(end - start + 1)
-            .fold(String::new(), |a, b| a + b + "\n")
+            .collect()
     }
 }
