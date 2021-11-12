@@ -1,16 +1,17 @@
 mod canvas;
 mod color;
-mod misc;
-mod tuple;
-use std::f64::consts::PI;
-
-use canvas::Canvas;
-use color::Color;
-use tuple::Tuple;
 mod matrix2;
 mod matrix3;
 mod matrix4;
+mod misc;
+mod ray;
+mod tuple;
+
+use canvas::Canvas;
+use color::Color;
 use matrix4::Matrix4;
+use std::f64::consts::PI;
+use tuple::Tuple;
 
 fn compute_clock() -> Vec<Tuple> {
     let mut hours = vec![];

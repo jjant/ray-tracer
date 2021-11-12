@@ -1,5 +1,4 @@
 #![allow(dead_code, unused_macros)]
-use std::f64::consts::PI;
 use std::ops::Mul;
 
 use crate::matrix3::Matrix3;
@@ -254,6 +253,7 @@ mod tests {
     use super::*;
     use crate::matrix3::matrix3;
     use crate::misc::approx_equal;
+    use std::f64::consts::PI;
 
     #[test]
     fn constructing_and_inspecting_a_4x4_matrix() {
