@@ -46,6 +46,10 @@ impl Tuple {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
+    pub fn magnitude_squared(self) -> f64 {
+        self.dot(self)
+    }
+
     pub fn cross(self, other: Self) -> Self {
         // It's basically a bug if this is not the case.
         // Adding these is probably stupid,

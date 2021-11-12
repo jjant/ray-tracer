@@ -162,6 +162,15 @@ impl Matrix4 {
             [0., 0., 0., 1.],
         ])
     }
+
+    pub fn shearing(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> Self {
+        Self::from_rows([
+            [1., xy, xz, 0.],
+            [yx, 1., yz, 0.],
+            [zx, zy, 1., 0.],
+            [0., 0., 0., 1.],
+        ])
+    }
 }
 
 impl Mul for Matrix4 {
@@ -642,48 +651,80 @@ mod tests {
         assert_eq!(full_quarter * p, Tuple::point(-1., 0., 0.));
     }
 
-    // TODO: translate these tests and implement Matrix4::shearing.
-    //
-    // Scenario: A shearing transformation moves x in proportion to z
-    // Given transform ← shearing(0, 1, 0, 0, 0, 0)
-    // And p ← point(2, 3, 4)
-    // Then transform * p = point(6, 3, 4)
-    // Scenario: A shearing transformation moves y in proportion to x
-    // Given transform ← shearing(0, 0, 1, 0, 0, 0)
-    // And p ← point(2, 3, 4)
-    // Then transform * p = point(2, 5, 4)
-    // Scenario: A shearing transformation moves y in proportion to z
-    // Given transform ← shearing(0, 0, 0, 1, 0, 0)
-    // And p ← point(2, 3, 4)
-    // Then transform * p = point(2, 7, 4)
-    // Scenario: A shearing transformation moves z in proportion to x
-    // Given transform ← shearing(0, 0, 0, 0, 1, 0)
-    // And p ← point(2, 3, 4)
-    // Then transform * p = point(2, 3, 6)
-    // Scenario: A shearing transformation moves z in proportion to y
-    // Given transform ← shearing(0, 0, 0, 0, 0, 1)
-    // And p ← point(2, 3, 4)
-    // Then transform * p = point(2, 3, 7)
-    //
-    // Scenario: Individual transformations are applied in sequence
-    // Given p ← point(1, 0, 1)
-    // And A ← rotation_x(π / 2)
-    // And B ← scaling(5, 5, 5)
-    // And C ← translation(10, 5, 7)
-    // # apply rotation first
-    // When p2 ← A * p
-    // Then p2 = point(1, -1, 0)
-    // # then apply scaling
-    // When p3 ← B * p2
-    // Then p3 = point(5, -5, 0)
-    // # then apply translation
-    // When p4 ← C * p3
-    // Then p4 = point(15, 0, 7)
-    // Scenario: Chained transformations must be applied in reverse order
-    // Given p ← point(1, 0, 1)
-    // And A ← rotation_x(π / 2)
-    // And B ← scaling(5, 5, 5)
-    // And C ← translation(10, 5, 7)
-    // When T ← C * B * A
-    // Then T * p = point(15, 0, 7)
+    #[test]
+    fn a_shearing_transformation_moves_x_in_proportion_to_y() {
+        let transform = Matrix4::shearing(1., 0., 0., 0., 0., 0.);
+        let p = Tuple::point(2., 3., 4.);
+
+        assert_eq!(transform * p, Tuple::point(5., 3., 4.));
+    }
+
+    #[test]
+    fn a_shearing_transformation_moves_x_in_proportion_to_z() {
+        let transform = Matrix4::shearing(0., 1., 0., 0., 0., 0.);
+        let p = Tuple::point(2., 3., 4.);
+
+        assert_eq!(transform * p, Tuple::point(6., 3., 4.));
+    }
+
+    #[test]
+    fn a_shearing_transformation_moves_y_in_proportion_to_x() {
+        let transform = Matrix4::shearing(0., 0., 1., 0., 0., 0.);
+        let p = Tuple::point(2., 3., 4.);
+
+        assert_eq!(transform * p, Tuple::point(2., 5., 4.));
+    }
+
+    #[test]
+    fn a_shearing_transformation_moves_y_in_proportion_to_z() {
+        let transform = Matrix4::shearing(0., 0., 0., 1., 0., 0.);
+        let p = Tuple::point(2., 3., 4.);
+
+        assert_eq!(transform * p, Tuple::point(2., 7., 4.));
+    }
+
+    #[test]
+    fn a_shearing_transformation_moves_z_in_proportion_to_x() {
+        let transform = Matrix4::shearing(0., 0., 0., 0., 1., 0.);
+        let p = Tuple::point(2., 3., 4.);
+
+        assert_eq!(transform * p, Tuple::point(2., 3., 6.));
+    }
+
+    #[test]
+    fn a_shearing_transformation_moves_z_in_proportion_to_y() {
+        let transform = Matrix4::shearing(0., 0., 0., 0., 0., 1.);
+        let p = Tuple::point(2., 3., 4.);
+
+        assert_eq!(transform * p, Tuple::point(2., 3., 7.));
+    }
+
+    #[test]
+    fn individual_transformations_are_applied_in_sequence() {
+        let p = Tuple::point(1., 0., 1.);
+        let a = Matrix4::rotation_x(PI / 2.);
+        let b = Matrix4::scaling(5., 5., 5.);
+        let c = Matrix4::translation(10., 5., 7.);
+
+        // Apply rotation first
+        let p2 = a * p;
+        assert_eq!(p2, Tuple::point(1., -1., 0.));
+        // Then apply scaling
+        let p3 = b * p2;
+        assert_eq!(p3, Tuple::point(5., -5., 0.));
+        // Then apply translation
+        let p4 = c * p3;
+        assert_eq!(p4, Tuple::point(15., 0., 7.));
+    }
+
+    #[test]
+    fn chained_transformations_must_be_applied_in_reverse_order() {
+        let p = Tuple::point(1., 0., 1.);
+        let a = Matrix4::rotation_x(PI / 2.);
+        let b = Matrix4::scaling(5., 5., 5.);
+        let c = Matrix4::translation(10., 5., 7.);
+        let t = c * b * a;
+
+        assert_eq!(t * p, Tuple::point(15., 0., 7.));
+    }
 }
