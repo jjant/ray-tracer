@@ -1,7 +1,3 @@
-macro_rules! matrix2 { ($(| $( $x:literal )|* |)*) => { { Matrix2::from_rows([ $([ $( $x as f64, )* ],)* ]) } }; }
-
-pub(crate) use matrix2;
-
 use crate::misc::approx_equal;
 
 const N: usize = 2;
@@ -18,17 +14,13 @@ impl Matrix2 {
     }
 
     pub fn determinant(&self) -> f64 {
-        self.rows[0][0] * self.rows[1][1] - self.rows[0][1] * self.rows[1][0]
+        self.get(0, 0) * self.get(1, 1) - self.get(0, 1) * self.get(1, 0)
     }
 
     pub fn identity() -> Self {
-        let mut zeroes = Self::zeroes();
-
-        (0..N).for_each(|index| {
-            *zeroes.get_mut(index, index) = 1.;
-        });
-
-        zeroes
+        Self {
+            rows: [[1., 0.], [0., 1.]],
+        }
     }
 
     pub fn zeroes() -> Self {
@@ -65,10 +57,7 @@ mod tests {
 
     #[test]
     fn a_2x2_matrix_ought_to_be_representable() {
-        let m = matrix2![
-            | -3| 5 |
-            | 1 | -2|
-        ];
+        let m = Matrix2::from_rows([[-3., 5.], [1., -2.]]);
 
         assert!(approx_equal(m.get(0, 0), -3.));
         assert!(approx_equal(m.get(0, 1), 5.));
@@ -85,10 +74,7 @@ mod tests {
 
     #[test]
     fn calculating_the_determinant_of_a_2x2_matrix() {
-        let a = matrix2![
-            | 1 | 5 |
-            | -3 | 2 |
-        ];
+        let a = Matrix2::from_rows([[1., 5.], [-3., 2.]]);
 
         assert!(approx_equal(a.determinant(), 17.));
     }

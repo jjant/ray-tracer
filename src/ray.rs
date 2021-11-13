@@ -1,28 +1,12 @@
 #![allow(dead_code)]
 use crate::matrix4::Matrix4;
+use crate::sphere::Sphere;
 use crate::{misc::approx_equal, tuple::Tuple};
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Sphere {
-    transform: Matrix4,
-}
-
-impl Sphere {
-    pub fn new() -> Self {
-        Self {
-            transform: Matrix4::identity(),
-        }
-    }
-
-    pub fn set_transform(&mut self, transform: Matrix4) {
-        self.transform = transform
-    }
-}
 
 #[derive(Clone, Copy, Debug)]
 pub struct Intersection {
-    t: f64,
-    object: Sphere,
+    pub t: f64,
+    pub object: Sphere,
 }
 
 impl Intersection {
@@ -49,8 +33,8 @@ impl PartialEq for Intersection {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Ray {
-    origin: Tuple,
-    direction: Tuple,
+    pub origin: Tuple,
+    pub direction: Tuple,
 }
 
 impl Ray {
@@ -58,7 +42,7 @@ impl Ray {
         Self { origin, direction }
     }
 
-    fn position(self, t: f64) -> Tuple {
+    pub fn position(self, t: f64) -> Tuple {
         self.origin + self.direction * t
     }
 
@@ -94,9 +78,8 @@ impl Ray {
 
 #[cfg(test)]
 mod tests {
-    use crate::misc::approx_equal;
-
     use super::*;
+    use crate::misc::approx_equal;
 
     #[test]
     fn creating_and_querying_a_ray() {
@@ -273,23 +256,6 @@ mod tests {
 
         assert_eq!(r2.origin, Tuple::point(2., 6., 12.));
         assert_eq!(r2.direction, Tuple::vector(0., 3., 0.));
-    }
-
-    #[test]
-    fn a_spheres_default_transformation() {
-        let s = Sphere::new();
-
-        assert_eq!(s.transform, Matrix4::identity());
-    }
-
-    #[test]
-    fn changing_a_spheres_transformation() {
-        let mut s = Sphere::new();
-        let t = Matrix4::translation(2., 3., 4.);
-
-        s.set_transform(t);
-
-        assert_eq!(s.transform, t);
     }
 
     #[test]

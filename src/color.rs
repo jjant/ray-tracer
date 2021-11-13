@@ -13,6 +13,14 @@ impl Color {
         Self { red, green, blue }
     }
 
+    pub fn black() -> Self {
+        Self {
+            red: 0.,
+            green: 0.,
+            blue: 0.,
+        }
+    }
+
     pub fn white() -> Self {
         Self {
             red: 1.,
