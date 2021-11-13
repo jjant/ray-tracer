@@ -98,7 +98,6 @@ impl PartialEq for Matrix3 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::matrix2::matrix2;
     use crate::misc::approx_equal;
 
     #[test]
@@ -134,10 +133,7 @@ mod tests {
 
         assert_eq!(
             a.submatrix(0, 2),
-            matrix2![
-                | -3 | 2 |
-                | 0 | 6 |
-            ]
+            Matrix2::from_rows([[-3., 2.], [0., 6.],])
         );
     }
 
@@ -151,13 +147,7 @@ mod tests {
 
         let b = a.submatrix(1, 0);
 
-        assert_eq!(
-            b,
-            matrix2![
-                | 5 | 0 |
-                | -1| 5 |
-            ]
-        );
+        assert_eq!(b, Matrix2::from_rows([[5., 0.], [-1., 5.]]));
         assert_eq!(b.determinant(), 25.);
         assert_eq!(a.minor(1, 0), 25.);
     }

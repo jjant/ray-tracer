@@ -1,16 +1,21 @@
 mod canvas;
 mod color;
+mod light;
+mod material;
 mod matrix2;
 mod matrix3;
 mod matrix4;
 mod misc;
 mod ray;
+mod sphere;
 mod tuple;
 
 use canvas::Canvas;
 use color::Color;
+use light::Light;
 use matrix4::Matrix4;
-use ray::{Intersection, Ray, Sphere};
+use ray::{Intersection, Ray};
+use sphere::Sphere;
 use std::f64::consts::PI;
 use tuple::Tuple;
 
@@ -20,6 +25,10 @@ const HEIGHT: usize = 500;
 fn draw_sphere(canvas: &mut Canvas) {
     let mut sphere = Sphere::new();
 
+    sphere.material.color = Color::new(1., 0.2, 1.);
+
+    let light = Light::point_light(Tuple::point(-10., 10., -10.), Color::white());
+
     // shrink it along the y axis
     // sphere.set_transform(Matrix4::scaling(1., 0.5, 1.));
 
@@ -27,10 +36,10 @@ fn draw_sphere(canvas: &mut Canvas) {
     // sphere.set_transform(Matrix4::scaling(0.5, 1., 1.));
 
     // shrink it, and rotate it!
-    // sphere.set_transform(Matrix4::rotation_z(PI / 4.) * Matrix4::scaling(0.5, 1., 1.));
+    sphere.set_transform(Matrix4::rotation_z(PI / 4.) * Matrix4::scaling(0.5, 1., 1.));
 
     // shrink it, and skew it!
-    sphere.set_transform(Matrix4::shearing(1., 0., 0., 0., 0., 0.) * Matrix4::scaling(0.5, 1., 1.));
+    // sphere.set_transform(Matrix4::shearing(1., 0., 0., 0., 0., 0.) * Matrix4::scaling(0.5, 1., 1.));
 
     let wall_z = 10.;
     let wall_size = 7.;
@@ -49,10 +58,15 @@ fn draw_sphere(canvas: &mut Canvas) {
 
             let xs = ray.intersect(sphere);
 
-            if let Some(_) = Intersection::hit(&xs) {
-                canvas.write_pixel(x as i32, y as i32, Color::red())
+            if let Some(hit) = Intersection::hit(&xs) {
+                let point = ray.position(hit.t);
+                let normal = sphere.normal_at(point);
+                let eye = -ray.direction;
+
+                let color = material::lighting(hit.object.material, light, point, eye, normal);
+                canvas.write_pixel(x as i32, y as i32, color)
             } else {
-                canvas.write_pixel(x as i32, y as i32, Color::white())
+                canvas.write_pixel(x as i32, y as i32, Color::black())
             }
         }
     }
