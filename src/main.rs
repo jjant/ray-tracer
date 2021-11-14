@@ -1,5 +1,6 @@
 mod canvas;
 mod color;
+mod intersection;
 mod light;
 mod material;
 mod matrix2;
@@ -9,12 +10,14 @@ mod misc;
 mod ray;
 mod sphere;
 mod tuple;
+mod world;
 
 use canvas::Canvas;
 use color::Color;
+use intersection::Intersection;
 use light::Light;
 use matrix4::Matrix4;
-use ray::{Intersection, Ray};
+use ray::Ray;
 use sphere::Sphere;
 use std::f64::consts::PI;
 use tuple::Tuple;
