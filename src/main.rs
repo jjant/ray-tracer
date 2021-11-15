@@ -1,3 +1,4 @@
+mod camera;
 mod canvas;
 mod color;
 mod intersection;
@@ -9,75 +10,78 @@ mod matrix4;
 mod misc;
 mod ray;
 mod sphere;
+mod transformations;
 mod tuple;
 mod world;
 
 use canvas::Canvas;
 use color::Color;
-use intersection::Intersection;
 use light::Light;
 use matrix4::Matrix4;
-use ray::Ray;
 use sphere::Sphere;
 use std::f64::consts::PI;
 use tuple::Tuple;
 
+use crate::{camera::Camera, world::World};
+
 const WIDTH: usize = 500;
 const HEIGHT: usize = 500;
 
-fn draw_sphere(canvas: &mut Canvas) {
-    let mut sphere = Sphere::new();
+fn draw_world() -> Canvas {
+    let mut floor = Sphere::new();
+    floor.transform = Matrix4::scaling(10., 0.01, 10.);
+    floor.material.color = Color::new(1., 0.9, 0.9);
+    floor.material.specular = 0.;
 
-    sphere.material.color = Color::new(1., 0.2, 1.);
+    let mut left_wall = Sphere::new();
+    left_wall.transform = Matrix4::translation(0., 0., 5.)
+        * Matrix4::rotation_y(-PI / 4.)
+        * Matrix4::rotation_x(PI / 2.)
+        * Matrix4::scaling(10., 0.01, 10.);
+    left_wall.material = floor.material;
 
-    let light = Light::point_light(Tuple::point(-10., 10., -10.), Color::white());
+    let mut right_wall = Sphere::new();
+    right_wall.transform = Matrix4::translation(0., 0., 5.)
+        * Matrix4::rotation_y(PI / 4.)
+        * Matrix4::rotation_x(PI / 2.)
+        * Matrix4::scaling(10., 0.01, 10.);
+    right_wall.material = floor.material;
 
-    // shrink it along the y axis
-    // sphere.set_transform(Matrix4::scaling(1., 0.5, 1.));
+    let mut middle = Sphere::new();
+    middle.transform = Matrix4::translation(-0.5, 1., 0.5);
+    middle.material.color = Color::new(0.1, 1., 0.5);
+    middle.material.diffuse = 0.7;
+    middle.material.specular = 0.3;
 
-    // shrink it along the x axis
-    // sphere.set_transform(Matrix4::scaling(0.5, 1., 1.));
+    let mut right = Sphere::new();
+    right.transform = Matrix4::translation(1.5, 0.5, -0.5) * Matrix4::scaling(0.5, 0.5, 0.5);
+    right.material.color = Color::new(0.5, 1., 0.1);
+    right.material.diffuse = 0.7;
+    right.material.specular = 0.3;
 
-    // shrink it, and rotate it!
-    sphere.set_transform(Matrix4::rotation_z(PI / 4.) * Matrix4::scaling(0.5, 1., 1.));
+    let mut left = Sphere::new();
+    left.transform = Matrix4::translation(-1.5, 0.33, -0.75) * Matrix4::scaling(0.33, 0.33, 0.33);
+    left.material.color = Color::new(1., 0.8, 0.1);
+    left.material.diffuse = 0.7;
+    left.material.specular = 0.3;
 
-    // shrink it, and skew it!
-    // sphere.set_transform(Matrix4::shearing(1., 0., 0., 0., 0., 0.) * Matrix4::scaling(0.5, 1., 1.));
+    let mut world = World::new();
+    world.objects = vec![floor, left_wall, right_wall, middle, right, left];
+    world.light = Some(Light::point_light(
+        Tuple::point(-10., 10., -10.),
+        Color::white(),
+    ));
 
-    let wall_z = 10.;
-    let wall_size = 7.;
-    let pixel_size = wall_size / WIDTH as f64;
-    let half = wall_size / 2.;
+    let mut camera = Camera::new(WIDTH as i32, HEIGHT as i32, PI / 3.);
+    camera.transform = transformations::view_transform(
+        Tuple::point(0., 1.5, -5.),
+        Tuple::point(0., 1., 0.),
+        Tuple::vector(0., 1., 0.),
+    );
 
-    for y in 0..HEIGHT {
-        let world_y = half - pixel_size * y as f64;
-        for x in 0..WIDTH {
-            let world_x = -half + pixel_size * x as f64;
-
-            let wall_point = Tuple::point(world_x, world_y, wall_z);
-
-            let ray_origin = Tuple::point(0., 0., -5.);
-            let ray = Ray::new(ray_origin, (wall_point - ray_origin).normalize());
-
-            let xs = ray.intersect(sphere);
-
-            if let Some(hit) = Intersection::hit(&xs) {
-                let point = ray.position(hit.t);
-                let normal = sphere.normal_at(point);
-                let eye = -ray.direction;
-
-                let color = material::lighting(hit.object.material, light, point, eye, normal);
-                canvas.write_pixel(x as i32, y as i32, color)
-            } else {
-                canvas.write_pixel(x as i32, y as i32, Color::black())
-            }
-        }
-    }
+    camera.render(&world)
 }
 
 fn main() {
-    let mut canvas = Canvas::new(WIDTH, HEIGHT);
-
-    draw_sphere(&mut canvas);
-    println!("{}", canvas.to_ppm());
+    println!("{}", draw_world().to_ppm());
 }
