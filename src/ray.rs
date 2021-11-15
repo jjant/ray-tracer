@@ -1,35 +1,8 @@
 #![allow(dead_code)]
+use crate::intersection::Intersection;
 use crate::matrix4::Matrix4;
 use crate::sphere::Sphere;
-use crate::{misc::approx_equal, tuple::Tuple};
-
-#[derive(Clone, Copy, Debug)]
-pub struct Intersection {
-    pub t: f64,
-    pub object: Sphere,
-}
-
-impl Intersection {
-    fn new(t: f64, object: Sphere) -> Self {
-        Self { t, object }
-    }
-
-    // Returns the closest intersection, that is
-    // the one with the smallest non-negative t value.
-    pub fn hit(intersections: &[Self]) -> Option<Self> {
-        intersections
-            .iter()
-            .filter(|i| (**i).t >= 0.)
-            .min_by(|i1, i2| i1.t.partial_cmp(&i2.t).unwrap())
-            .copied()
-    }
-}
-
-impl PartialEq for Intersection {
-    fn eq(&self, other: &Self) -> bool {
-        approx_equal(self.t, other.t) && self.object == other.object
-    }
-}
+use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Ray {
@@ -159,15 +132,6 @@ mod tests {
         assert!(approx_equal(xs[1].t, -4.0));
     }
 
-    #[test]
-    fn an_intersection_encapsulates_t_and_object() {
-        let s = Sphere::new();
-        let i = Intersection::new(3.5, s);
-
-        assert!(approx_equal(i.t, 3.5));
-        assert_eq!(i.object, s);
-    }
-
     // TODO: check if this test is actually needed
     //
     // Scenario: Aggregating intersections
@@ -191,51 +155,6 @@ mod tests {
         assert_eq!(xs[1].object, s);
     }
 
-    #[test]
-    fn the_hit_when_all_intersections_have_positive_t() {
-        let s = Sphere::new();
-        let i1 = Intersection::new(1., s);
-        let i2 = Intersection::new(2., s);
-        let xs = vec![i2, i1];
-        let i = Intersection::hit(&xs);
-
-        assert_eq!(i, Some(i1));
-    }
-
-    #[test]
-    fn the_hit_when_some_intersections_have_negative_t() {
-        let s = Sphere::new();
-        let i1 = Intersection::new(-1., s);
-        let i2 = Intersection::new(1., s);
-        let xs = vec![i2, i1];
-        let i = Intersection::hit(&xs);
-
-        assert_eq!(i, Some(i2));
-    }
-
-    #[test]
-    fn the_hit_when_all_intersections_have_negative_t() {
-        let s = Sphere::new();
-        let i1 = Intersection::new(-2., s);
-        let i2 = Intersection::new(-1., s);
-        let xs = vec![i2, i1];
-        let i = Intersection::hit(&xs);
-
-        assert!(i.is_none());
-    }
-
-    #[test]
-    fn the_hit_is_always_the_lowest_nonnegative_intersection() {
-        let s = Sphere::new();
-        let i1 = Intersection::new(5., s);
-        let i2 = Intersection::new(7., s);
-        let i3 = Intersection::new(-3., s);
-        let i4 = Intersection::new(2., s);
-        let xs = vec![i1, i2, i3, i4];
-        let i = Intersection::hit(&xs);
-
-        assert_eq!(i, Some(i4));
-    }
     #[test]
     fn translating_a_ray_() {
         let r = Ray::new(Tuple::point(1., 2., 3.), Tuple::vector(0., 1., 0.));
