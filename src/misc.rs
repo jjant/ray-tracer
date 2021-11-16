@@ -1,4 +1,10 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, f64::consts::PI};
+
+pub fn degrees(angle_in_deg: f64) -> f64 {
+    angle_in_deg * PI / 180.
+}
+
+pub const EPSILON: f64 = 1e-7;
 
 /// Compare floats with a hardcoded precision of
 /// 5 significant digits.

@@ -1,9 +1,5 @@
-#![allow(dead_code, unused_macros)]
 use crate::matrix2::Matrix2;
 use crate::misc::{self, approx_equal};
-
-macro_rules! matrix3 { ($(| $( $x:literal )|* |)*) => { { Matrix3::from_rows([ $([ $( $x as f64, )* ],)* ]) } }; }
-pub(crate) use matrix3;
 
 const N: usize = 3;
 type Row = [f64; N];
@@ -14,20 +10,6 @@ pub struct Matrix3 {
 }
 
 impl Matrix3 {
-    pub fn from_rows(rows: [Row; N]) -> Self {
-        Self { rows }
-    }
-
-    pub fn identity() -> Self {
-        let mut zeroes = Self::zeroes();
-
-        (0..N).for_each(|index| {
-            *zeroes.get_mut(index, index) = 1.;
-        });
-
-        zeroes
-    }
-
     pub fn determinant(&self) -> f64 {
         (0..N)
             .map(|col| {
@@ -99,6 +81,23 @@ impl PartialEq for Matrix3 {
 mod tests {
     use super::*;
     use crate::misc::approx_equal;
+    macro_rules! matrix3 { ($(| $( $x:literal )|* |)*) => { { Matrix3::from_rows([ $([ $( $x as f64, )* ],)* ]) } }; }
+
+    impl Matrix3 {
+        pub fn from_rows(rows: [Row; N]) -> Self {
+            Self { rows }
+        }
+
+        pub fn identity() -> Self {
+            let mut zeroes = Self::zeroes();
+
+            (0..N).for_each(|index| {
+                *zeroes.get_mut(index, index) = 1.;
+            });
+
+            zeroes
+        }
+    }
 
     #[test]
     fn a_3x3_matrix_ought_to_be_representable() {

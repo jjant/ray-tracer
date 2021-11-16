@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use crate::misc::approx_equal;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 

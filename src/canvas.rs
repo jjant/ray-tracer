@@ -27,6 +27,7 @@ impl Canvas {
     }
 
     /// TODO: We should not panic here, but let's see what the book does first.
+    #[allow(dead_code)]
     pub fn pixel_at(&self, x: i32, y: i32) -> Color {
         if let Some(index) = self.get_index(x, y) {
             self.pixels[index]
