@@ -9,6 +9,7 @@ mod matrix3;
 mod matrix4;
 mod misc;
 mod ray;
+mod shape;
 mod sphere;
 mod transformations;
 mod tuple;

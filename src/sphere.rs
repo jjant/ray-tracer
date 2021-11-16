@@ -1,5 +1,7 @@
+use crate::intersection::Intersection;
 use crate::material::Material;
 use crate::matrix4::Matrix4;
+use crate::shape::Shape;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -15,22 +17,49 @@ impl Sphere {
             material: Material::new(),
         }
     }
+}
 
-    pub fn set_transform(&mut self, transform: Matrix4) {
+impl Shape for Sphere {
+    fn transform(&self) -> Matrix4 {
+        self.transform
+    }
+
+    fn set_transform(&mut self, transform: Matrix4) {
         self.transform = transform
     }
 
-    pub fn normal_at(self, world_point: Tuple) -> Tuple {
-        let inverse_transform = self.transform.inverse().unwrap();
-        let object_point = inverse_transform * world_point;
+    fn material(&self) -> Material {
+        self.material
+    }
 
-        let object_normal = object_point - Tuple::point(0., 0., 0.);
+    fn set_material(&mut self, material: Material) {
+        self.material = material;
+    }
 
-        let mut world_normal = inverse_transform.transpose() * object_normal;
-        // TODO: Investigate what's up with setting the w = 0;
-        world_normal.w = 0.;
+    fn local_intersect(
+        &self,
+        local_ray: crate::ray::Ray,
+    ) -> Vec<crate::intersection::Intersection> {
+        let sphere_to_ray = local_ray.origin - Tuple::point(0., 0., 0.);
+        let a = local_ray.direction.magnitude_squared();
+        let b = 2. * local_ray.direction.dot(sphere_to_ray);
+        let c = sphere_to_ray.magnitude_squared() - 1.;
 
-        world_normal.normalize()
+        let discriminant = b.powi(2) - 4. * a * c;
+
+        if discriminant < 0. {
+            vec![]
+        } else {
+            let t1 = (-b - discriminant.sqrt()) / (2. * a);
+            let t2 = (-b + discriminant.sqrt()) / (2. * a);
+
+            vec![Intersection::new(t1, *self), Intersection::new(t2, *self)]
+        }
+    }
+
+    fn local_normal_at(&self, local_point: Tuple) -> Tuple {
+        // Warning: do not remove this (consider the w!)
+        local_point - Tuple::point(0., 0., 0.)
     }
 }
 
@@ -39,23 +68,6 @@ mod tests {
     use std::f64::consts::PI;
 
     use super::*;
-
-    #[test]
-    fn a_spheres_default_transformation() {
-        let s = Sphere::new();
-
-        assert_eq!(s.transform, Matrix4::identity());
-    }
-
-    #[test]
-    fn changing_a_spheres_transformation() {
-        let mut s = Sphere::new();
-        let t = Matrix4::translation(2., 3., 4.);
-
-        s.set_transform(t);
-
-        assert_eq!(s.transform, t);
-    }
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
@@ -90,43 +102,5 @@ mod tests {
             n,
             Tuple::vector(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.)
         );
-    }
-
-    #[test]
-    fn computing_the_normal_on_a_translated_sphere() {
-        let mut s = Sphere::new();
-
-        s.set_transform(Matrix4::translation(0., 1., 0.));
-
-        let n = s.normal_at(Tuple::point(0., 1.70711, -0.70711));
-        assert_eq!(n, Tuple::vector(0., 0.70711, -0.70711));
-    }
-
-    #[test]
-    fn computing_the_normal_on_a_transformed_sphere() {
-        let mut s = Sphere::new();
-        let m = Matrix4::scaling(1., 0.5, 1.) * Matrix4::rotation_z(PI / 5.);
-
-        s.set_transform(m);
-
-        let n = s.normal_at(Tuple::point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.));
-        assert_eq!(n, Tuple::vector(0., 0.97014, -0.24254));
-    }
-
-    #[test]
-    fn a_sphere_has_a_default_material() {
-        let s = Sphere::new();
-
-        assert_eq!(s.material, Material::new());
-    }
-
-    #[test]
-    fn a_sphere_may_be_assigned_a_material() {
-        let mut s = Sphere::new();
-        let mut m = Material::new();
-        m.ambient = 1.;
-        s.material = m;
-
-        assert_eq!(s.material, m);
     }
 }

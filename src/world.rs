@@ -40,7 +40,7 @@ impl World {
         let mut intersections: Vec<Intersection> = self
             .objects
             .iter()
-            .flat_map(|object| ray.intersect(*object))
+            .flat_map(|object| ray.intersect(object))
             .collect();
 
         intersections.sort_by(|i1, i2| i1.t.partial_cmp(&i2.t).unwrap());
