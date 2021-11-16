@@ -2,6 +2,8 @@ use crate::ray::Ray;
 use crate::tuple::Tuple;
 use crate::{misc::approx_equal, sphere::Sphere};
 
+const EPSILON: f64 = 1e-7;
+
 #[derive(Clone, Copy, Debug)]
 pub struct Intersection {
     pub t: f64,
@@ -37,6 +39,8 @@ impl Intersection {
             (false, tentative_normal)
         };
 
+        let over_point = point + normal_vector * EPSILON;
+
         ComputedIntersection {
             object,
             t,
@@ -44,6 +48,7 @@ impl Intersection {
             eye_vector,
             normal_vector,
             inside,
+            over_point,
         }
     }
 }
@@ -61,10 +66,13 @@ pub struct ComputedIntersection {
     pub eye_vector: Tuple,
     pub normal_vector: Tuple,
     pub inside: bool,
+    pub over_point: Tuple,
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::matrix4::Matrix4;
+
     use super::*;
 
     #[test]
@@ -159,5 +167,17 @@ mod tests {
         assert!(comps.inside);
         // Normal would have been (0., 0., 1.), but is inverted!
         assert_eq!(comps.normal_vector, Tuple::vector(0., 0., -1.));
+    }
+
+    #[test]
+    fn the_hit_should_offset_the_point() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
+        let mut shape = Sphere::new();
+        shape.transform = Matrix4::translation(0., 0., 1.);
+        let i = Intersection::new(5., shape);
+        let comps = i.prepare_computations(r);
+
+        assert!(comps.over_point.z < -EPSILON / 2.);
+        assert!(comps.point.z > comps.over_point.z);
     }
 }
