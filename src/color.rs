@@ -37,6 +37,14 @@ impl Color {
             blue: 0.,
         }
     }
+
+    pub fn green() -> Self {
+        Self {
+            red: 0.,
+            green: 1.,
+            blue: 0.,
+        }
+    }
 }
 
 impl PartialEq for Color {

@@ -1,6 +1,7 @@
 use crate::color::Color;
 use crate::light::Light;
 use crate::misc::approx_equal;
+use crate::pattern::Pattern;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
@@ -10,6 +11,7 @@ pub struct Material {
     pub diffuse: f64,
     pub specular: f64,
     pub shininess: f64,
+    pattern: Option<Pattern>,
 }
 
 impl Material {
@@ -20,6 +22,14 @@ impl Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.,
+            pattern: None,
+        }
+    }
+
+    pub fn with_pattern(pattern: Pattern) -> Self {
+        Self {
+            pattern: Some(pattern),
+            ..Self::new()
         }
     }
 }
@@ -42,8 +52,14 @@ pub fn lighting(
     normal_vector: Tuple,
     in_shadow: bool,
 ) -> Color {
+    let color = if let Some(pattern) = material.pattern {
+        pattern.stripe_at(point)
+    } else {
+        material.color
+    };
+
     // combine the surface color with the light's color/intensity
-    let effective_color = material.color * light.intensity;
+    let effective_color = color * light.intensity;
     // find the direction to the light source
     let light_vector = (light.position - point).normalize();
     // compute the ambient contribution
