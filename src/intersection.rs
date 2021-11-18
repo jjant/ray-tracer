@@ -1,9 +1,7 @@
+use crate::misc::{approx_equal, EPSILON};
 use crate::ray::Ray;
-use crate::shape::{Object, Shape};
+use crate::shape::Object;
 use crate::tuple::Tuple;
-use crate::{misc::approx_equal, sphere::Sphere};
-
-const EPSILON: f64 = 1e-7;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Intersection {

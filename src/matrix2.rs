@@ -9,18 +9,8 @@ pub struct Matrix2 {
 }
 
 impl Matrix2 {
-    pub fn from_rows(rows: [Row; N]) -> Self {
-        Self { rows }
-    }
-
     pub fn determinant(&self) -> f64 {
         self.get(0, 0) * self.get(1, 1) - self.get(0, 1) * self.get(1, 0)
-    }
-
-    pub fn identity() -> Self {
-        Self {
-            rows: [[1., 0.], [0., 1.]],
-        }
     }
 
     pub fn zeroes() -> Self {
@@ -54,6 +44,18 @@ impl PartialEq for Matrix2 {
 mod tests {
     use super::*;
     use crate::misc::approx_equal;
+
+    impl Matrix2 {
+        pub fn from_rows(rows: [Row; N]) -> Self {
+            Self { rows }
+        }
+
+        fn identity() -> Self {
+            Self {
+                rows: [[1., 0.], [0., 1.]],
+            }
+        }
+    }
 
     #[test]
     fn a_2x2_matrix_ought_to_be_representable() {

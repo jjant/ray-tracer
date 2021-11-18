@@ -1,8 +1,4 @@
-#![allow(dead_code)]
-use crate::intersection::Intersection;
 use crate::matrix4::Matrix4;
-use crate::shape::{Object, Shape};
-use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
@@ -32,6 +28,7 @@ impl Ray {
 mod tests {
     use super::*;
     use crate::misc::approx_equal;
+    use crate::shape::Object;
 
     #[test]
     fn creating_and_querying_a_ray() {
@@ -111,17 +108,6 @@ mod tests {
         assert!(approx_equal(xs[1].t, -4.0));
     }
 
-    // TODO: check if this test is actually needed
-    //
-    // Scenario: Aggregating intersections
-    // Given s = sphere()
-    // And i1 = intersection(1, s)
-    // And i2 = intersection(2, s)
-    // When xs = intersections(i1, i2)
-    // Then xs.count = 2
-    // And xs[0].t = 1
-    // And xs[1].t = 2
-
     #[test]
     fn intersect_sets_the_object_on_the_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
@@ -161,7 +147,7 @@ mod tests {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let mut s = Object::sphere();
 
-        s.set_transform(Matrix4::scaling(2., 2., 2.));
+        *s.transform_mut() = Matrix4::scaling(2., 2., 2.);
 
         let xs = s.intersect(r);
 
@@ -175,7 +161,7 @@ mod tests {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let mut s = Object::sphere();
 
-        s.set_transform(Matrix4::translation(5., 0., 0.));
+        *s.transform_mut() = Matrix4::translation(5., 0., 0.);
 
         let xs = s.intersect(r);
 

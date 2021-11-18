@@ -1,11 +1,9 @@
 use crate::color::Color;
 use crate::intersection::{ComputedIntersection, Intersection};
 use crate::light::Light;
-use crate::material::{self, Material};
-use crate::matrix4::Matrix4;
+use crate::material;
 use crate::ray::Ray;
 use crate::shape::Object;
-use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 pub struct World {
     pub objects: Vec<Object>,
@@ -17,26 +15,6 @@ impl World {
         Self {
             objects: vec![],
             light: None,
-        }
-    }
-
-    pub fn default() -> Self {
-        let mut s1 = Object::sphere();
-        let mut material = Material::new();
-        material.color = Color::new(0.8, 1.0, 0.6);
-        material.diffuse = 0.7;
-        material.specular = 0.2;
-        s1.set_material(material);
-
-        let mut s2 = Object::sphere();
-        s2.set_transform(Matrix4::scaling(0.5, 0.5, 0.5));
-
-        Self {
-            objects: vec![s1, s2],
-            light: Some(Light::point_light(
-                Tuple::point(-10., 10., -10.),
-                Color::white(),
-            )),
         }
     }
 
@@ -95,7 +73,31 @@ impl World {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix4::Matrix4;
     use crate::misc::approx_equal;
+
+    impl World {
+        pub fn default() -> Self {
+            let mut s1 = Object::sphere();
+            {
+                let material = s1.material_mut();
+                material.color = Color::new(0.8, 1.0, 0.6);
+                material.diffuse = 0.7;
+                material.specular = 0.2;
+            }
+
+            let mut s2 = Object::sphere();
+            *s2.transform_mut() = Matrix4::scaling(0.5, 0.5, 0.5);
+
+            Self {
+                objects: vec![s1, s2],
+                light: Some(Light::point_light(
+                    Tuple::point(-10., 10., -10.),
+                    Color::white(),
+                )),
+            }
+        }
+    }
 
     #[test]
     fn creating_a_world() {
@@ -108,14 +110,15 @@ mod tests {
     fn the_default_world() {
         let light = Light::point_light(Tuple::point(-10., 10., -10.), Color::white());
         let mut s1 = Object::sphere();
-        let mut material = Material::new();
-        material.color = Color::new(0.8, 1.0, 0.6);
-        material.diffuse = 0.7;
-        material.specular = 0.2;
-        s1.set_material(material);
+        {
+            let mut material = s1.material_mut();
+            material.color = Color::new(0.8, 1.0, 0.6);
+            material.diffuse = 0.7;
+            material.specular = 0.2;
+        }
 
         let mut s2 = Object::sphere();
-        s2.set_transform(Matrix4::scaling(0.5, 0.5, 0.5));
+        *s2.transform_mut() = Matrix4::scaling(0.5, 0.5, 0.5);
 
         let w = World::default();
 
@@ -241,7 +244,7 @@ mod tests {
         let s1 = Object::sphere();
         w.objects.push(s1);
         let mut s2 = Object::sphere();
-        s2.set_transform(Matrix4::translation(0., 0., 10.));
+        *s2.transform_mut() = Matrix4::translation(0., 0., 10.);
         w.objects.push(s2);
 
         let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));

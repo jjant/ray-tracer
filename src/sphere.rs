@@ -1,4 +1,3 @@
-use crate::intersection::Intersection;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 
@@ -32,11 +31,8 @@ impl Sphere {
 
 #[cfg(test)]
 mod tests {
-    use std::f64::consts::PI;
-
-    use crate::shape::Object;
-
     use super::*;
+    use crate::shape::Object;
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {

@@ -1,3 +1,4 @@
+use crate::plane::Plane;
 use crate::{
     intersection::Intersection, material::Material, matrix4::Matrix4, ray::Ray, sphere::Sphere,
     tuple::Tuple,
@@ -13,18 +14,21 @@ pub struct Object {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Shape {
     Sphere,
+    Plane,
 }
 
 impl Shape {
     pub fn local_normal_at(&self, local_point: Tuple) -> Tuple {
         match self {
             Shape::Sphere => Sphere::local_normal_at(local_point),
+            Shape::Plane => Plane::local_normal_at(local_point),
         }
     }
 
     fn local_intersect(&self, local_ray: Ray) -> Vec<f64> {
         match self {
             Shape::Sphere => Sphere::local_intersect(local_ray),
+            Shape::Plane => Plane::local_intersect(local_ray),
         }
     }
 }
@@ -38,8 +42,14 @@ impl Object {
         }
     }
 
+    /// TODO: Document
     pub fn sphere() -> Self {
         Self::new(Shape::Sphere)
+    }
+
+    /// TODO: Document (specially that it defaults to an XZ plane)
+    pub fn plane() -> Self {
+        Self::new(Shape::Plane)
     }
 
     pub fn transform(&self) -> Matrix4 {
@@ -50,20 +60,12 @@ impl Object {
         &mut self.transform
     }
 
-    pub fn set_transform(&mut self, transform: Matrix4) {
-        self.transform = transform;
-    }
-
     pub fn material(&self) -> Material {
         self.material
     }
 
     pub fn material_mut(&mut self) -> &mut Material {
         &mut self.material
-    }
-
-    pub fn set_material(&mut self, material: Material) {
-        self.material = material
     }
 
     /// The maths assume the sphere is located in the origin,
@@ -110,7 +112,7 @@ mod tests {
         let mut s = Object::new(Shape::Sphere);
         let t = Matrix4::translation(2., 3., 4.);
 
-        s.set_transform(t);
+        *s.transform_mut() = t;
 
         assert_eq!(s.transform, t);
     }
@@ -127,7 +129,8 @@ mod tests {
         let mut s = Object::new(Shape::Sphere);
         let mut m = Material::new();
         m.ambient = 1.;
-        s.set_material(m);
+
+        *s.material_mut() = m;
 
         assert_eq!(s.material(), m);
     }
@@ -162,7 +165,7 @@ mod tests {
     fn computing_the_normal_on_a_translated_shape() {
         let mut s = Object::new(Shape::Sphere);
 
-        s.set_transform(Matrix4::translation(0., 1., 0.));
+        *s.transform_mut() = Matrix4::translation(0., 1., 0.);
 
         let n = s.normal_at(Tuple::point(0., 1.70711, -0.70711));
         assert_eq!(n, Tuple::vector(0., 0.70711, -0.70711));
@@ -173,7 +176,7 @@ mod tests {
         let mut s = Object::new(Shape::Sphere);
         let m = Matrix4::scaling(1., 0.5, 1.) * Matrix4::rotation_z(PI / 5.);
 
-        s.set_transform(m);
+        *s.transform_mut() = m;
 
         let n = s.normal_at(Tuple::point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.));
         assert_eq!(n, Tuple::vector(0., 0.97014, -0.24254));

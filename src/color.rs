@@ -29,6 +29,7 @@ impl Color {
         }
     }
 
+    #[allow(dead_code)]
     pub fn red() -> Self {
         Self {
             red: 1.,
