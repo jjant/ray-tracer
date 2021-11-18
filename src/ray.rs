@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use crate::intersection::Intersection;
 use crate::matrix4::Matrix4;
-use crate::shape::Shape;
+use crate::shape::{Object, Shape};
 use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 
@@ -25,14 +25,6 @@ impl Ray {
             origin: matrix * self.origin,
             direction: matrix * self.direction,
         }
-    }
-
-    /// The maths assume the sphere is located in the origin,
-    /// and it handles the general case by "unmoving" the ray with the opposite transform.
-    pub fn intersect(self, shape: &impl Shape) -> Vec<Intersection> {
-        let local_ray = self.transform(shape.transform().inverse().unwrap());
-
-        shape.local_intersect(local_ray)
     }
 }
 
@@ -65,9 +57,9 @@ mod tests {
     #[test]
     fn a_ray_intersects_a_sphere_at_two_points() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Object::sphere();
 
-        let xs = r.intersect(&s);
+        let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
         assert!(approx_equal(xs[0].t, 4.));
@@ -77,9 +69,9 @@ mod tests {
     #[test]
     fn a_ray_intersects_a_sphere_at_a_tangent() {
         let r = Ray::new(Tuple::point(0., 1., -5.), Tuple::vector(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Object::sphere();
 
-        let xs = r.intersect(&s);
+        let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
         assert!(approx_equal(xs[0].t, 5.));
@@ -89,8 +81,8 @@ mod tests {
     #[test]
     fn a_ray_misses_a_sphere() {
         let r = Ray::new(Tuple::point(0., 2., -5.), Tuple::vector(0., 0., 1.));
-        let s = Sphere::new();
-        let xs = r.intersect(&s);
+        let s = Object::sphere();
+        let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 0);
     }
@@ -98,9 +90,9 @@ mod tests {
     #[test]
     fn a_ray_originates_inside_a_sphere() {
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Object::sphere();
 
-        let xs = r.intersect(&s);
+        let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
         assert!(approx_equal(xs[0].t, -1.0));
@@ -110,9 +102,9 @@ mod tests {
     #[test]
     fn a_sphere_is_behind_a_ray() {
         let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Object::sphere();
 
-        let xs = r.intersect(&s);
+        let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
         assert!(approx_equal(xs[0].t, -6.0));
@@ -133,9 +125,9 @@ mod tests {
     #[test]
     fn intersect_sets_the_object_on_the_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let s = Sphere::new();
+        let s = Object::sphere();
 
-        let xs = r.intersect(&s);
+        let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].object, s);
@@ -167,11 +159,11 @@ mod tests {
     #[test]
     fn intersecting_a_scaled_sphere_with_a_ray() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut s = Sphere::new();
+        let mut s = Object::sphere();
 
         s.set_transform(Matrix4::scaling(2., 2., 2.));
 
-        let xs = r.intersect(&s);
+        let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
         assert!(approx_equal(xs[0].t, 3.));
@@ -181,11 +173,11 @@ mod tests {
     #[test]
     fn intersecting_a_translated_sphere_with_a_ray() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut s = Sphere::new();
+        let mut s = Object::sphere();
 
         s.set_transform(Matrix4::translation(5., 0., 0.));
 
-        let xs = r.intersect(&s);
+        let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 0);
     }
