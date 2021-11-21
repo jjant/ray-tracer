@@ -33,6 +33,7 @@ impl World {
     pub fn shade_hit(&self, comps: ComputedIntersection) -> Color {
         material::lighting(
             comps.object.material(),
+            comps.object,
             self.light
                 .expect("Expected light to be present in shade_hit"),
             comps.point,

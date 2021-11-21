@@ -26,8 +26,8 @@ use tuple::Tuple;
 
 use crate::{camera::Camera, material::Material, pattern::Pattern, shape::Object, world::World};
 
-const WIDTH: usize = 500;
-const HEIGHT: usize = 500;
+const WIDTH: usize = 300;
+const HEIGHT: usize = 300;
 
 fn draw_world() -> Canvas {
     let mut floor = Object::plane();
@@ -37,7 +37,10 @@ fn draw_world() -> Canvas {
 
     let mut middle = Object::sphere();
     *middle.transform_mut() = Matrix4::translation(-0.5, 1., 0.5);
-    *middle.material_mut() = Material::with_pattern(Pattern::striped(Color::red(), Color::green()));
+    let mut pattern = Pattern::gradient(Color::white(), Color::black());
+    // *pattern.transform_mut() = Matrix4::scaling(2.0, 2.0, 2.0);
+    *pattern.transform_mut() = Matrix4::scaling(2., 2.0, 2.0) * Matrix4::translation(0.5, 0., 0.);
+    *middle.material_mut() = Material::with_pattern(pattern);
     middle.material_mut().color = Color::new(0.1, 1., 0.5);
     middle.material_mut().diffuse = 0.7;
     middle.material_mut().specular = 0.3;
@@ -52,7 +55,7 @@ fn draw_world() -> Canvas {
     let mut left = Object::sphere();
     *left.transform_mut() =
         Matrix4::translation(-1.5, 0.33, -0.75) * Matrix4::scaling(0.33, 0.33, 0.33);
-    *left.material_mut() = Material::with_pattern(Pattern::striped(Color::red(), Color::green()));
+    *left.material_mut() = Material::with_pattern(Pattern::gradient(Color::red(), Color::green()));
     left.material_mut().color = Color::new(1., 0.8, 0.1);
     left.material_mut().diffuse = 0.7;
     left.material_mut().specular = 0.3;
