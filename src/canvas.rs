@@ -3,7 +3,7 @@ use crate::color::Color;
 pub struct Canvas {
     pub width: usize,
     pub height: usize,
-    pixels: Vec<Color>,
+    pub pixels: Vec<Color>,
 }
 
 const MAX_COLOR_VALUE: i32 = 255;

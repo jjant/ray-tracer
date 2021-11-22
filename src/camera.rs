@@ -1,4 +1,6 @@
-use crate::{canvas::Canvas, matrix4::Matrix4, ray::Ray, tuple::Tuple, world::World};
+use std::thread;
+
+use crate::{canvas::Canvas, color::Color, matrix4::Matrix4, ray::Ray, tuple::Tuple, world::World};
 
 #[derive(Clone, Copy)]
 pub struct Camera {
@@ -54,19 +56,51 @@ impl Camera {
         Ray::new(origin, direction)
     }
 
-    pub fn render(self, world: &World) -> Canvas {
+    pub fn render<'a>(self, world: World) -> Canvas {
         let mut canvas = Canvas::new(self.hsize as usize, self.vsize as usize);
 
-        for y in 0..self.vsize {
-            for x in 0..self.hsize {
-                let ray = self.ray_for_pixel(x, y);
-                let color = world.color_at(ray);
+        let num_threads = self.vsize / 8;
 
-                canvas.write_pixel(x, y, color);
-            }
+        let num_threads = 8;
+        let rows_per_thread = self.vsize / num_threads;
+
+        let mut handles = vec![];
+        let rc_world = std::sync::Arc::new(world);
+
+        for thread_index in 0..num_threads {
+            let world_ = std::sync::Arc::clone(&rc_world);
+
+            let handle = thread::spawn(move || {
+                let mut pixels = Vec::with_capacity((rows_per_thread * self.hsize) as usize);
+
+                let y_low = thread_index * rows_per_thread;
+                let y_high = (thread_index + 1) * rows_per_thread;
+                for y in y_low..y_high {
+                    for x in 0..self.hsize {
+                        let ray = self.ray_for_pixel(x, y);
+                        let color = world_.color_at(ray);
+
+                        pixels.push(color);
+                    }
+                }
+                pixels
+            });
+            handles.push(handle);
+        }
+        let mut pixels = Vec::with_capacity((self.vsize * self.hsize) as usize);
+
+        for handle in handles.into_iter() {
+            let mut v = handle.join().unwrap();
+
+            pixels.append(&mut v)
         }
 
-        canvas
+        println!("{}", pixels.len());
+        Canvas {
+            width: self.hsize as usize,
+            height: self.vsize as usize,
+            pixels,
+        }
     }
 }
 
@@ -146,7 +180,7 @@ mod tests {
         let up = Tuple::vector(0., 1., 0.);
         c.transform = view_transform(from, to, up);
 
-        let image = c.render(&w);
+        let image = c.render(w);
 
         assert_eq!(image.pixel_at(5, 5), Color::new(0.38066, 0.47583, 0.2855));
     }

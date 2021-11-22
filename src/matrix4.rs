@@ -129,6 +129,10 @@ impl Matrix4 {
         ])
     }
 
+    pub fn scaling_uniform(f: f64) -> Self {
+        Self::scaling(f, f, f)
+    }
+
     #[allow(dead_code)]
     pub fn rotation_x(angle_radians: f64) -> Self {
         let r = angle_radians;
