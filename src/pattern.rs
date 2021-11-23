@@ -1,4 +1,4 @@
-use crate::{color::Color, material::Material, matrix4::Matrix4, shape::Object, tuple::Tuple};
+use crate::{color::Color, matrix4::Matrix4, shape::Object, tuple::Tuple};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pattern {
@@ -11,6 +11,7 @@ enum PatternType {
     Striped(StripePattern),
     Gradient(GradientPattern),
     Ring(RingPattern),
+    Checkered(CheckeredPattern),
 }
 
 impl Pattern {
@@ -37,11 +38,16 @@ impl Pattern {
         Self::new(PatternType::Ring(RingPattern::new(a, b)))
     }
 
+    pub fn checkered(a: Color, b: Color) -> Self {
+        Self::new(PatternType::Checkered(CheckeredPattern::new(a, b)))
+    }
+
     fn pattern_at(&self, point: Tuple) -> Color {
         match self.pattern_type {
             PatternType::Striped(pattern_type) => pattern_type.pattern_at(point),
             PatternType::Gradient(pattern_type) => pattern_type.pattern_at(point),
             PatternType::Ring(pattern_type) => pattern_type.pattern_at(point),
+            PatternType::Checkered(pattern_type) => pattern_type.pattern_at(point),
         }
     }
 
@@ -111,11 +117,33 @@ impl RingPattern {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+struct CheckeredPattern {
+    a: Color,
+    b: Color,
+}
+
+impl CheckeredPattern {
+    pub fn new(a: Color, b: Color) -> Self {
+        Self { a, b }
+    }
+
+    pub fn pattern_at(&self, point: Tuple) -> Color {
+        let predicate = (point.x.floor() + point.y.floor() + point.z.floor()) as i32 % 2 == 0;
+
+        if predicate {
+            self.a
+        } else {
+            self.b
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::shape::Object;
-
     use super::*;
+    use crate::shape::Object;
 
     #[test]
     fn creating_a_stripe_pattern() {
@@ -231,6 +259,48 @@ mod tests {
         // 0.708 = just slightly more than √2/2
         assert_eq!(
             pattern.pattern_at(Tuple::point(0.708, 0., 0.708)),
+            Color::black()
+        );
+    }
+
+    #[test]
+    fn checkers_should_repeat_in_x() {
+        let pattern = Pattern::checkered(Color::white(), Color::black());
+        assert_eq!(pattern.pattern_at(Tuple::point(0., 0., 0.)), Color::white());
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0.99, 0., 0.)),
+            Color::white()
+        );
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(1.01, 0., 0.)),
+            Color::black()
+        );
+    }
+
+    #[test]
+    fn checkers_should_repeat_in_y() {
+        let pattern = Pattern::checkered(Color::white(), Color::black());
+        assert_eq!(pattern.pattern_at(Tuple::point(0., 0., 0.)), Color::white());
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0., 0.99, 0.)),
+            Color::white()
+        );
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0., 1.01, 0.)),
+            Color::black()
+        );
+    }
+
+    #[test]
+    fn checkers_should_repeat_in_z() {
+        let pattern = Pattern::checkered(Color::white(), Color::black());
+        assert_eq!(pattern.pattern_at(Tuple::point(0., 0., 0.)), Color::white());
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0., 0., 0.99)),
+            Color::white()
+        );
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0., 0., 1.01)),
             Color::black()
         );
     }
