@@ -174,4 +174,23 @@ mod tests {
 
         assert_eq!(c, Color::white());
     }
+
+    #[test]
+    fn a_gradient_linearly_interpolates_between_colors() {
+        let pattern = Pattern::gradient(Color::white(), Color::black());
+
+        assert_eq!(pattern.pattern_at(Tuple::point(0., 0., 0.)), Color::white());
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0.25, 0., 0.)),
+            Color::new(0.75, 0.75, 0.75)
+        );
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0.5, 0., 0.)),
+            Color::new(0.5, 0.5, 0.5)
+        );
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0.75, 0., 0.)),
+            Color::new(0.25, 0.25, 0.25)
+        );
+    }
 }
