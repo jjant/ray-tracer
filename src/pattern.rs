@@ -10,6 +10,7 @@ pub struct Pattern {
 enum PatternType {
     Striped(StripePattern),
     Gradient(GradientPattern),
+    Ring(RingPattern),
 }
 
 impl Pattern {
@@ -32,10 +33,15 @@ impl Pattern {
         Self::new(PatternType::Gradient(GradientPattern::new(a, b)))
     }
 
+    pub fn ring(a: Color, b: Color) -> Self {
+        Self::new(PatternType::Ring(RingPattern::new(a, b)))
+    }
+
     fn pattern_at(&self, point: Tuple) -> Color {
         match self.pattern_type {
             PatternType::Striped(pattern_type) => pattern_type.pattern_at(point),
             PatternType::Gradient(pattern_type) => pattern_type.pattern_at(point),
+            PatternType::Ring(pattern_type) => pattern_type.pattern_at(point),
         }
     }
 
@@ -84,6 +90,27 @@ impl GradientPattern {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct RingPattern {
+    a: Color,
+    b: Color,
+}
+
+impl RingPattern {
+    pub fn new(a: Color, b: Color) -> Self {
+        Self { a, b }
+    }
+
+    pub fn pattern_at(&self, point: Tuple) -> Color {
+        let p = (point.x.powi(2) + point.z.powi(2)).floor() as i32 % 2 == 0;
+
+        if p {
+            self.a
+        } else {
+            self.b
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use crate::shape::Object;
@@ -191,6 +218,20 @@ mod tests {
         assert_eq!(
             pattern.pattern_at(Tuple::point(0.75, 0., 0.)),
             Color::new(0.25, 0.25, 0.25)
+        );
+    }
+
+    #[test]
+    fn a_ring_should_extend_in_both_x_and_z() {
+        let pattern = Pattern::ring(Color::white(), Color::black());
+
+        assert_eq!(pattern.pattern_at(Tuple::point(0., 0., 0.)), Color::white());
+        assert_eq!(pattern.pattern_at(Tuple::point(1., 0., 0.)), Color::black());
+        assert_eq!(pattern.pattern_at(Tuple::point(0., 0., 1.)), Color::black());
+        // 0.708 = just slightly more than √2/2
+        assert_eq!(
+            pattern.pattern_at(Tuple::point(0.708, 0., 0.708)),
+            Color::black()
         );
     }
 }
