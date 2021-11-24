@@ -38,6 +38,7 @@ impl Intersection {
             (false, tentative_normal)
         };
 
+        let reflect_vector = ray.direction.reflect(normal_vector);
         let over_point = point + normal_vector * EPSILON;
 
         ComputedIntersection {
@@ -46,6 +47,7 @@ impl Intersection {
             point,
             eye_vector,
             normal_vector,
+            reflect_vector,
             inside,
             over_point,
         }
@@ -64,6 +66,7 @@ pub struct ComputedIntersection {
     pub point: Tuple,
     pub eye_vector: Tuple,
     pub normal_vector: Tuple,
+    pub reflect_vector: Tuple,
     pub inside: bool,
     pub over_point: Tuple,
 }
@@ -178,5 +181,20 @@ mod tests {
 
         assert!(comps.over_point.z < -EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z);
+    }
+    #[test]
+    fn precomputing_the_reflection_vector() {
+        let shape = Object::plane();
+        let r = Ray::new(
+            Tuple::point(0., 1., -1.),
+            Tuple::vector(0., -2_f64.sqrt() / 2_f64, 2_f64.sqrt() / 2_f64),
+        );
+        let i = Intersection::new(2_f64.sqrt(), shape);
+        let comps = i.prepare_computations(r);
+
+        assert_eq!(
+            comps.reflect_vector,
+            Tuple::vector(0., 2_f64.sqrt() / 2_f64, 2_f64.sqrt() / 2_f64)
+        );
     }
 }

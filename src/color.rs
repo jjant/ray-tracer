@@ -62,9 +62,12 @@ impl Color {
 
 impl PartialEq for Color {
     fn eq(&self, other: &Self) -> bool {
-        approx_equal(self.red, other.red)
-            && approx_equal(self.green, other.green)
-            && approx_equal(self.blue, other.blue)
+        let d_red = self.red - other.red;
+        let d_green = self.green - other.green;
+        let d_blue = self.blue - other.blue;
+        let dist_squared = d_red.powi(2) + d_green.powi(2) + d_blue.powi(2);
+
+        approx_equal(dist_squared, 0.)
     }
 }
 

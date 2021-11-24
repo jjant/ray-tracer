@@ -12,6 +12,7 @@ pub struct Material {
     pub diffuse: f64,
     pub specular: f64,
     pub shininess: f64,
+    pub reflective: Option<f64>,
     pattern: Option<Pattern>,
 }
 
@@ -23,6 +24,7 @@ impl Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.,
+            reflective: None,
             pattern: None,
         }
     }
@@ -115,7 +117,8 @@ mod tests {
         assert!(approx_equal(m.ambient, 0.1));
         assert!(approx_equal(m.diffuse, 0.9));
         assert!(approx_equal(m.specular, 0.9));
-        assert!(approx_equal(m.shininess, 200.0));
+        assert!(approx_equal(m.shininess, 200.));
+        assert!(m.reflective.is_none());
     }
 
     #[test]
