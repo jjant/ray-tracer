@@ -1,6 +1,7 @@
 mod camera;
 mod canvas;
 mod color;
+mod examples;
 mod intersection;
 mod light;
 mod material;
@@ -66,7 +67,14 @@ fn draw_world() -> Canvas {
     left.material_mut().specular = 0.3;
 
     let mut world = World::new();
-    world.objects = vec![floor, middle, right, left];
+    world.objects = vec![
+        floor,
+        middle,
+        right,
+        left,
+        examples::back_wall(),
+        examples::right_wall(),
+    ];
     world.light = Some(Light::point_light(
         Tuple::point(-10., 10., -10.),
         Color::white(),
