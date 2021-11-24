@@ -130,7 +130,8 @@ impl CheckeredPattern {
     }
 
     pub fn pattern_at(&self, point: Tuple) -> Color {
-        let predicate = (point.x.floor() + point.y.floor() + point.z.floor()) as i32 % 2 == 0;
+        let sum_floors = point.x.floor() + point.y.floor() + point.z.floor();
+        let predicate = sum_floors as i32 % 2 == 0;
 
         if predicate {
             self.a

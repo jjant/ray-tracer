@@ -36,7 +36,9 @@ impl World {
             comps.object,
             self.light
                 .expect("Expected light to be present in shade_hit"),
-            comps.point,
+            // Testing to remove acne from floor with checkered pattern (https://forum.raytracerchallenge.com/thread/204/avoid-noise-checkers-pattern-planes)
+            // comps.point,
+            comps.over_point,
             comps.eye_vector,
             comps.normal_vector,
             self.is_shadowed(comps.over_point),

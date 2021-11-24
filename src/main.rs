@@ -24,22 +24,27 @@ use matrix4::Matrix4;
 use std::f64::consts::PI;
 use tuple::Tuple;
 
-use crate::{camera::Camera, material::Material, pattern::Pattern, shape::Object, world::World};
+use crate::{
+    camera::Camera, material::Material, misc::degrees, pattern::Pattern, shape::Object,
+    world::World,
+};
 
-const WIDTH: usize = 300;
+const WIDTH: usize = 500;
 const HEIGHT: usize = 300;
 
 fn draw_world() -> Canvas {
     let mut floor = Object::plane();
-    *floor.material_mut() = Material::with_pattern(Pattern::striped(Color::red(), Color::green()));
+    *floor.material_mut() =
+        Material::with_pattern(Pattern::checkered(Color::black(), Color::white()));
     floor.material_mut().color = Color::new(1., 0.9, 0.9);
     floor.material_mut().specular = 0.;
 
     let mut middle = Object::sphere();
     *middle.transform_mut() = Matrix4::translation(-0.5, 1., 0.5);
-    let mut pattern = Pattern::gradient(Color::white(), Color::black());
-    // *pattern.transform_mut() = Matrix4::scaling(2.0, 2.0, 2.0);
-    *pattern.transform_mut() = Matrix4::scaling(2., 2.0, 2.0) * Matrix4::translation(0.5, 0., 0.);
+    let mut pattern = Pattern::ring(Color::rgb255(0, 240, 10), Color::rgb255(10, 200, 25));
+    *pattern.transform_mut() = Matrix4::rotation_z(degrees(35.))
+        * Matrix4::rotation_x(degrees(-60.))
+        * Matrix4::scaling(0.45, 0.45, 0.45);
     *middle.material_mut() = Material::with_pattern(pattern);
     middle.material_mut().color = Color::new(0.1, 1., 0.5);
     middle.material_mut().diffuse = 0.7;
