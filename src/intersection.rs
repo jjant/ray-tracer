@@ -43,6 +43,7 @@ impl Intersection {
 
         let reflect_vector = ray.direction.reflect(normal_vector);
         let over_point = point + normal_vector * EPSILON;
+        let under_point = point - normal_vector * EPSILON;
 
         let (n1, n2) = self.compute_refractive_indices(all_intersections);
 
@@ -55,6 +56,7 @@ impl Intersection {
             reflect_vector,
             inside,
             over_point,
+            under_point,
             n1: n1,
             n2: n2,
         }
@@ -115,6 +117,7 @@ pub struct ComputedIntersection {
     pub reflect_vector: Tuple,
     pub inside: bool,
     pub over_point: Tuple,
+    pub under_point: Tuple,
     pub n1: f64,
     pub n2: f64,
 }
@@ -286,5 +289,19 @@ mod tests {
             assert!(approx_equal(comps.n1, *n1));
             assert!(approx_equal(comps.n2, *n2));
         }
+    }
+
+    #[test]
+    fn the_under_point_is_offset_below_the_surface() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
+        let mut shape = Object::glass_sphere();
+        *shape.transform_mut() = Matrix4::translation(0., 0., 1.);
+
+        let i = Intersection::new(5., shape);
+        let xs = [i];
+        let comps = i.prepare_computations(r, &xs);
+
+        assert!(comps.under_point.z > EPSILON / 2.);
+        assert!(comps.point.z < comps.under_point.z);
     }
 }
