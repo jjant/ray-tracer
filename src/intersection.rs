@@ -23,38 +23,7 @@ impl Intersection {
             .min_by(|i1, i2| i1.t.partial_cmp(&i2.t).unwrap())
     }
 
-    pub fn prepare_computations(&self, ray: Ray) -> ComputedIntersection {
-        let object = self.object;
-        let t = self.t;
-        let point = ray.position(self.t);
-        let eye_vector = -ray.direction;
-
-        let tentative_normal = self.object.normal_at(point);
-
-        let (inside, normal_vector) = if tentative_normal.dot(eye_vector) < 0. {
-            (true, -tentative_normal)
-        } else {
-            (false, tentative_normal)
-        };
-
-        let reflect_vector = ray.direction.reflect(normal_vector);
-        let over_point = point + normal_vector * EPSILON;
-
-        ComputedIntersection {
-            object,
-            t,
-            point,
-            eye_vector,
-            normal_vector,
-            reflect_vector,
-            inside,
-            over_point,
-            n1: 0.,
-            n2: 0.,
-        }
-    }
-
-    pub fn prepare_computations2(
+    pub fn prepare_computations(
         &self,
         ray: Ray,
         all_intersections: &[Intersection],
@@ -217,7 +186,7 @@ mod tests {
         let shape = Object::sphere();
         let intersection = Intersection::new(4., shape);
 
-        let comps = intersection.prepare_computations(r);
+        let comps = intersection.prepare_computations(r, &[intersection]);
 
         assert!(approx_equal(comps.t, intersection.t));
         assert_eq!(comps.object, intersection.object);
@@ -231,7 +200,7 @@ mod tests {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let shape = Object::sphere();
         let i = Intersection::new(4., shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &[i]);
 
         assert!(!comps.inside);
     }
@@ -241,7 +210,7 @@ mod tests {
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
         let shape = Object::sphere();
         let i = Intersection::new(1., shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &[i]);
 
         assert_eq!(comps.point, Tuple::point(0., 0., 1.));
         assert_eq!(comps.eye_vector, Tuple::vector(0., 0., -1.));
@@ -256,7 +225,7 @@ mod tests {
         let mut shape = Object::sphere();
         *shape.transform_mut() = Matrix4::translation(0., 0., 1.);
         let i = Intersection::new(5., shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &[i]);
 
         assert!(comps.over_point.z < -EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z);
@@ -270,7 +239,7 @@ mod tests {
             Tuple::vector(0., -2_f64.sqrt() / 2_f64, 2_f64.sqrt() / 2_f64),
         );
         let i = Intersection::new(2_f64.sqrt(), shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &[i]);
 
         assert_eq!(
             comps.reflect_vector,
@@ -310,7 +279,7 @@ mod tests {
 
         let computed_intersections = intersections_with_expected_indices
             .iter()
-            .map(|(intersection, n1, n2)| (intersection.prepare_computations2(ray, &xs), n1, n2))
+            .map(|(intersection, n1, n2)| (intersection.prepare_computations(ray, &xs), n1, n2))
             .collect::<Vec<_>>();
 
         for (comps, n1, n2) in computed_intersections {
