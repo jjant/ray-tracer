@@ -91,6 +91,15 @@ impl Object {
 
         world_normal.normalize()
     }
+
+    pub fn glass_sphere() -> Self {
+        let mut s = Self::sphere();
+
+        s.material.transparency = 1.0;
+        s.material.refractive_index = 1.5;
+
+        s
+    }
 }
 
 #[cfg(test)]
@@ -180,5 +189,14 @@ mod tests {
 
         let n = s.normal_at(Tuple::point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.));
         assert_eq!(n, Tuple::vector(0., 0.97014, -0.24254));
+    }
+
+    #[test]
+    fn a_helper_for_producing_a_sphere_with_a_glassy_material() {
+        let s = Object::glass_sphere();
+
+        assert_eq!(s.transform, Matrix4::identity());
+        assert_eq!(s.material.transparency, 1.0);
+        assert_eq!(s.material.refractive_index, 1.5);
     }
 }

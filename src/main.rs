@@ -30,8 +30,8 @@ use crate::{
     world::World,
 };
 
-const WIDTH: usize = 1000;
-const HEIGHT: usize = 625;
+const WIDTH: usize = 640;
+const HEIGHT: usize = 380;
 
 fn draw_world() -> Canvas {
     let mut floor = Object::plane();

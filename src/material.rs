@@ -14,6 +14,8 @@ pub struct Material {
     pub shininess: f64,
     pub reflective: Option<f64>,
     pattern: Option<Pattern>,
+    pub transparency: f64,
+    pub refractive_index: f64,
 }
 
 impl Material {
@@ -26,6 +28,8 @@ impl Material {
             shininess: 200.,
             reflective: None,
             pattern: None,
+            transparency: 0.0,
+            refractive_index: 1.0,
         }
     }
 
@@ -185,12 +189,19 @@ mod tests {
     fn lighting_with_the_surface_in_shadow() {
         let m = Material::new();
         let o = Object::sphere();
-        let eyev = Tuple::vector(0., 0., -1.);
+        let eye_vector = Tuple::vector(0., 0., -1.);
         let position = Tuple::point(0., 0., 0.);
-        let normalv = Tuple::vector(0., 0., -1.);
+        let normal_vector = Tuple::vector(0., 0., -1.);
         let light = Light::point_light(Tuple::point(0., 0., -10.), Color::new(1., 1., 1.));
         let in_shadow = true;
-        let result = lighting(m, o, light, position, eyev, normalv, in_shadow);
+        let result = lighting(m, o, light, position, eye_vector, normal_vector, in_shadow);
         assert_eq!(result, Color::new(0.1, 0.1, 0.1));
+    }
+
+    #[test]
+    fn transparency_and_refractive_index_for_the_default_material() {
+        let m = Material::new();
+        assert!(approx_equal(m.transparency, 0.0));
+        assert!(approx_equal(m.refractive_index, 1.0));
     }
 }

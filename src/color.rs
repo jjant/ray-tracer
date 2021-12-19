@@ -42,6 +42,7 @@ impl Color {
         }
     }
 
+    #[allow(dead_code)]
     pub fn green() -> Self {
         Self {
             red: 0.,
