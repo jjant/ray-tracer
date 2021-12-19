@@ -99,6 +99,15 @@ impl World {
             default_color
         }
     }
+
+    fn refracted_color(&self, comps: ComputedIntersection, remaining_depth: i32) -> Color {
+        // TODO: Finish this function, we've implemented Test #5 in page 155.
+        if remaining_depth == 0 || comps.object.material().transparency == 0. {
+            Color::black()
+        } else {
+            Color::white()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -379,5 +388,33 @@ mod tests {
         let color = w.reflected_color(comps, 0);
 
         assert_eq!(color, Color::black());
+    }
+
+    #[test]
+    fn the_refracted_color_with_an_opaque_surface() {
+        let w = World::default();
+        let shape = w.objects[0];
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
+        let xs = [Intersection::new(4., shape), Intersection::new(6., shape)];
+        let comps = xs[0].prepare_computations(r, &xs);
+        let c = w.refracted_color(comps, 5);
+
+        assert_eq!(c, Color::black());
+    }
+
+    #[test]
+    fn the_refracted_color_at_the_maximum_recursive_depth() {
+        let mut w = World::default();
+        let shape = &mut w.objects[0];
+        shape.material_mut().transparency = 1.0;
+        shape.material_mut().refractive_index = 1.5;
+
+        let shape = w.objects[0];
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
+        let xs = [Intersection::new(4., shape), Intersection::new(6., shape)];
+        let comps = xs[0].prepare_computations(r, &xs);
+        let c = w.refracted_color(comps, 0);
+
+        assert_eq!(c, Color::black());
     }
 }
