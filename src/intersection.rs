@@ -1,17 +1,16 @@
+use crate::misc::{approx_equal, EPSILON};
 use crate::ray::Ray;
+use crate::shape::Object;
 use crate::tuple::Tuple;
-use crate::{misc::approx_equal, sphere::Sphere};
-
-const EPSILON: f64 = 1e-7;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Intersection {
     pub t: f64,
-    pub object: Sphere,
+    pub object: Object,
 }
 
 impl Intersection {
-    pub fn new(t: f64, object: Sphere) -> Self {
+    pub fn new(t: f64, object: Object) -> Self {
         Self { t, object }
     }
 
@@ -61,7 +60,7 @@ impl PartialEq for Intersection {
 
 pub struct ComputedIntersection {
     pub t: f64,
-    pub object: Sphere,
+    pub object: Object,
     pub point: Tuple,
     pub eye_vector: Tuple,
     pub normal_vector: Tuple,
@@ -77,7 +76,7 @@ mod tests {
 
     #[test]
     fn an_intersection_encapsulates_t_and_object() {
-        let s = Sphere::new();
+        let s = Object::sphere();
         let i = Intersection::new(3.5, s);
 
         assert!(approx_equal(i.t, 3.5));
@@ -86,7 +85,7 @@ mod tests {
 
     #[test]
     fn the_hit_when_all_intersections_have_positive_t() {
-        let s = Sphere::new();
+        let s = Object::sphere();
         let i1 = Intersection::new(1., s);
         let i2 = Intersection::new(2., s);
         let xs = vec![i2, i1];
@@ -97,7 +96,7 @@ mod tests {
 
     #[test]
     fn the_hit_when_some_intersections_have_negative_t() {
-        let s = Sphere::new();
+        let s = Object::sphere();
         let i1 = Intersection::new(-1., s);
         let i2 = Intersection::new(1., s);
         let xs = vec![i2, i1];
@@ -108,7 +107,7 @@ mod tests {
 
     #[test]
     fn the_hit_when_all_intersections_have_negative_t() {
-        let s = Sphere::new();
+        let s = Object::sphere();
         let i1 = Intersection::new(-2., s);
         let i2 = Intersection::new(-1., s);
         let xs = vec![i2, i1];
@@ -119,7 +118,7 @@ mod tests {
 
     #[test]
     fn the_hit_is_always_the_lowest_nonnegative_intersection() {
-        let s = Sphere::new();
+        let s = Object::sphere();
         let i1 = Intersection::new(5., s);
         let i2 = Intersection::new(7., s);
         let i3 = Intersection::new(-3., s);
@@ -133,7 +132,7 @@ mod tests {
     #[test]
     fn precomputing_the_state_of_an_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let shape = Sphere::new();
+        let shape = Object::sphere();
         let intersection = Intersection::new(4., shape);
 
         let comps = intersection.prepare_computations(r);
@@ -148,7 +147,7 @@ mod tests {
     #[test]
     fn the_hit_when_an_intersection_occurs_on_the_outside() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let shape = Sphere::new();
+        let shape = Object::sphere();
         let i = Intersection::new(4., shape);
         let comps = i.prepare_computations(r);
 
@@ -158,7 +157,7 @@ mod tests {
     #[test]
     fn the_hit_when_an_intersection_occurs_on_the_inside() {
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
-        let shape = Sphere::new();
+        let shape = Object::sphere();
         let i = Intersection::new(1., shape);
         let comps = i.prepare_computations(r);
 
@@ -172,8 +171,8 @@ mod tests {
     #[test]
     fn the_hit_should_offset_the_point() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut shape = Sphere::new();
-        shape.transform = Matrix4::translation(0., 0., 1.);
+        let mut shape = Object::sphere();
+        *shape.transform_mut() = Matrix4::translation(0., 0., 1.);
         let i = Intersection::new(5., shape);
         let comps = i.prepare_computations(r);
 

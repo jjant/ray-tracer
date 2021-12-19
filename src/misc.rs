@@ -1,5 +1,7 @@
 use std::cmp::Ordering;
 
+pub const EPSILON: f64 = 1e-7;
+
 /// Compare floats with a hardcoded precision of
 /// 5 significant digits.
 pub fn approx_equal(a: f64, b: f64) -> bool {

@@ -2,12 +2,11 @@ use crate::color::Color;
 use crate::intersection::{ComputedIntersection, Intersection};
 use crate::light::Light;
 use crate::material;
-use crate::matrix4::Matrix4;
 use crate::ray::Ray;
-use crate::sphere::Sphere;
+use crate::shape::Object;
 use crate::tuple::Tuple;
 pub struct World {
-    pub objects: Vec<Sphere>,
+    pub objects: Vec<Object>,
     pub light: Option<Light>,
 }
 
@@ -19,28 +18,11 @@ impl World {
         }
     }
 
-    pub fn default() -> Self {
-        let mut s1 = Sphere::new();
-        s1.material.color = Color::new(0.8, 1.0, 0.6);
-        s1.material.diffuse = 0.7;
-        s1.material.specular = 0.2;
-        let mut s2 = Sphere::new();
-        s2.transform = Matrix4::scaling(0.5, 0.5, 0.5);
-
-        Self {
-            objects: vec![s1, s2],
-            light: Some(Light::point_light(
-                Tuple::point(-10., 10., -10.),
-                Color::white(),
-            )),
-        }
-    }
-
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         let mut intersections: Vec<Intersection> = self
             .objects
             .iter()
-            .flat_map(|object| ray.intersect(*object))
+            .flat_map(|object| object.intersect(ray))
             .collect();
 
         intersections.sort_by(|i1, i2| i1.t.partial_cmp(&i2.t).unwrap());
@@ -50,7 +32,7 @@ impl World {
 
     pub fn shade_hit(&self, comps: ComputedIntersection) -> Color {
         material::lighting(
-            comps.object.material,
+            comps.object.material(),
             self.light
                 .expect("Expected light to be present in shade_hit"),
             comps.point,
@@ -91,7 +73,31 @@ impl World {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix4::Matrix4;
     use crate::misc::approx_equal;
+
+    impl World {
+        pub fn default() -> Self {
+            let mut s1 = Object::sphere();
+            {
+                let material = s1.material_mut();
+                material.color = Color::new(0.8, 1.0, 0.6);
+                material.diffuse = 0.7;
+                material.specular = 0.2;
+            }
+
+            let mut s2 = Object::sphere();
+            *s2.transform_mut() = Matrix4::scaling(0.5, 0.5, 0.5);
+
+            Self {
+                objects: vec![s1, s2],
+                light: Some(Light::point_light(
+                    Tuple::point(-10., 10., -10.),
+                    Color::white(),
+                )),
+            }
+        }
+    }
 
     #[test]
     fn creating_a_world() {
@@ -103,12 +109,16 @@ mod tests {
     #[test]
     fn the_default_world() {
         let light = Light::point_light(Tuple::point(-10., 10., -10.), Color::white());
-        let mut s1 = Sphere::new();
-        s1.material.color = Color::new(0.8, 1.0, 0.6);
-        s1.material.diffuse = 0.7;
-        s1.material.specular = 0.2;
-        let mut s2 = Sphere::new();
-        s2.transform = Matrix4::scaling(0.5, 0.5, 0.5);
+        let mut s1 = Object::sphere();
+        {
+            let mut material = s1.material_mut();
+            material.color = Color::new(0.8, 1.0, 0.6);
+            material.diffuse = 0.7;
+            material.specular = 0.2;
+        }
+
+        let mut s2 = Object::sphere();
+        *s2.transform_mut() = Matrix4::scaling(0.5, 0.5, 0.5);
 
         let w = World::default();
 
@@ -183,16 +193,16 @@ mod tests {
         let mut w = World::default();
         {
             let outer = &mut w.objects[0];
-            outer.material.ambient = 1.;
+            outer.material_mut().ambient = 1.;
             let inner = &mut w.objects[1];
-            inner.material.ambient = 1.;
+            inner.material_mut().ambient = 1.;
         }
 
         let inner = &w.objects[1];
         let r = Ray::new(Tuple::point(0., 0., 0.75), Tuple::vector(0., 0., -1.));
         let c = w.color_at(r);
 
-        assert_eq!(c, inner.material.color);
+        assert_eq!(c, inner.material().color);
     }
 
     #[test]
@@ -231,10 +241,10 @@ mod tests {
             Color::new(1., 1., 1.),
         ));
 
-        let s1 = Sphere::new();
+        let s1 = Object::sphere();
         w.objects.push(s1);
-        let mut s2 = Sphere::new();
-        s2.transform = Matrix4::translation(0., 0., 10.);
+        let mut s2 = Object::sphere();
+        *s2.transform_mut() = Matrix4::translation(0., 0., 10.);
         w.objects.push(s2);
 
         let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));

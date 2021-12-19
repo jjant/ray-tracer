@@ -1,11 +1,8 @@
-#![allow(dead_code, unused_macros)]
 use std::ops::Mul;
 
 use crate::matrix3::Matrix3;
 use crate::misc::{self, approx_equal};
 use crate::tuple::Tuple;
-
-macro_rules! matrix4 { ($(| $( $x:literal )|* |)*) => { { Matrix4::from_rows([ $([ $( $x as f64, )* ],)* ]) } }; }
 
 const N: usize = 4;
 type Row = [f64; N];
@@ -132,6 +129,7 @@ impl Matrix4 {
         ])
     }
 
+    #[allow(dead_code)]
     pub fn rotation_x(angle_radians: f64) -> Self {
         let r = angle_radians;
         Self::from_rows([
@@ -142,6 +140,7 @@ impl Matrix4 {
         ])
     }
 
+    #[allow(dead_code)]
     pub fn rotation_y(angle_radians: f64) -> Self {
         let r = angle_radians;
         Self::from_rows([
@@ -152,6 +151,7 @@ impl Matrix4 {
         ])
     }
 
+    #[allow(dead_code)]
     pub fn rotation_z(angle_radians: f64) -> Self {
         let r = angle_radians;
 
@@ -163,6 +163,7 @@ impl Matrix4 {
         ])
     }
 
+    #[allow(dead_code)]
     pub fn shearing(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> Self {
         Self::from_rows([
             [1., xy, xz, 0.],
@@ -260,9 +261,9 @@ impl PartialEq for Matrix4 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::matrix3::matrix3;
     use crate::misc::approx_equal;
     use std::f64::consts::PI;
+    macro_rules! matrix4 { ($(| $( $x:literal )|* |)*) => { { Matrix4::from_rows([ $([ $( $x as f64, )* ],)* ]) } }; }
 
     #[test]
     fn constructing_and_inspecting_a_4x4_matrix() {
@@ -411,11 +412,7 @@ mod tests {
             | -7 | 1 | -1 | 1 |
         ];
 
-        let submatrix = matrix3![
-            | -6 | 1 | 6 |
-            | -8 | 8 | 6 |
-            | -7 | -1 | 1 |
-        ];
+        let submatrix = Matrix3::from_rows([[-6., 1., 6.], [-8., 8., 6.], [-7., -1., 1.]]);
 
         assert_eq!(a.submatrix(2, 1), submatrix);
     }
