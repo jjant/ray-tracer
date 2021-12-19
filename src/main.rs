@@ -8,6 +8,7 @@ mod matrix2;
 mod matrix3;
 mod matrix4;
 mod misc;
+mod pattern;
 mod plane;
 mod ray;
 mod shape;
@@ -23,24 +24,35 @@ use matrix4::Matrix4;
 use std::f64::consts::PI;
 use tuple::Tuple;
 
-use crate::{camera::Camera, shape::Object, world::World};
+use crate::{
+    camera::Camera, material::Material, misc::degrees, pattern::Pattern, shape::Object,
+    world::World,
+};
 
 const WIDTH: usize = 500;
-const HEIGHT: usize = 500;
+const HEIGHT: usize = 300;
 
 fn draw_world() -> Canvas {
     let mut floor = Object::plane();
+    *floor.material_mut() =
+        Material::with_pattern(Pattern::checkered(Color::black(), Color::white()));
     floor.material_mut().color = Color::new(1., 0.9, 0.9);
     floor.material_mut().specular = 0.;
 
     let mut middle = Object::sphere();
     *middle.transform_mut() = Matrix4::translation(-0.5, 1., 0.5);
+    let mut pattern = Pattern::ring(Color::rgb255(0, 240, 10), Color::rgb255(10, 200, 25));
+    *pattern.transform_mut() = Matrix4::rotation_z(degrees(35.))
+        * Matrix4::rotation_x(degrees(-60.))
+        * Matrix4::scaling(0.45, 0.45, 0.45);
+    *middle.material_mut() = Material::with_pattern(pattern);
     middle.material_mut().color = Color::new(0.1, 1., 0.5);
     middle.material_mut().diffuse = 0.7;
     middle.material_mut().specular = 0.3;
 
     let mut right = Object::sphere();
     *right.transform_mut() = Matrix4::translation(1.5, 0.5, -0.5) * Matrix4::scaling(0.5, 0.5, 0.5);
+    *right.material_mut() = Material::with_pattern(Pattern::striped(Color::red(), Color::green()));
     right.material_mut().color = Color::new(0.5, 1., 0.1);
     right.material_mut().diffuse = 0.7;
     right.material_mut().specular = 0.3;
@@ -48,6 +60,7 @@ fn draw_world() -> Canvas {
     let mut left = Object::sphere();
     *left.transform_mut() =
         Matrix4::translation(-1.5, 0.33, -0.75) * Matrix4::scaling(0.33, 0.33, 0.33);
+    *left.material_mut() = Material::with_pattern(Pattern::gradient(Color::red(), Color::green()));
     left.material_mut().color = Color::new(1., 0.8, 0.1);
     left.material_mut().diffuse = 0.7;
     left.material_mut().specular = 0.3;

@@ -13,6 +13,10 @@ impl Color {
         Self { red, green, blue }
     }
 
+    pub fn rgb255(r: i32, g: i32, b: i32) -> Self {
+        Self::new(r as f64 / 255., g as f64 / 255., b as f64 / 255.)
+    }
+
     pub fn black() -> Self {
         Self {
             red: 0.,
@@ -35,6 +39,23 @@ impl Color {
             red: 1.,
             green: 0.,
             blue: 0.,
+        }
+    }
+
+    pub fn green() -> Self {
+        Self {
+            red: 0.,
+            green: 1.,
+            blue: 0.,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn blue() -> Self {
+        Self {
+            red: 0.,
+            green: 0.,
+            blue: 1.,
         }
     }
 }
@@ -133,5 +154,20 @@ mod tests {
         let c2 = Color::new(0.9, 1., 0.1);
 
         assert_eq!(c1 * c2, Color::new(0.9, 0.2, 0.04));
+    }
+
+    #[test]
+    fn colors_using_rgb255() {
+        let white = Color::rgb255(255, 255, 255);
+        let black = Color::rgb255(0, 0, 0);
+        let red = Color::rgb255(255, 0, 0);
+        let green = Color::rgb255(0, 255, 0);
+        let blue = Color::rgb255(0, 0, 255);
+
+        assert_eq!(white, Color::white());
+        assert_eq!(black, Color::black());
+        assert_eq!(red, Color::red());
+        assert_eq!(green, Color::green());
+        assert_eq!(blue, Color::blue());
     }
 }
