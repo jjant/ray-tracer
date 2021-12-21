@@ -108,6 +108,7 @@ impl PartialEq for Intersection {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct ComputedIntersection {
     pub t: f64,
     pub object: Object,

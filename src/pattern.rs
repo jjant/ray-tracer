@@ -12,6 +12,8 @@ enum PatternType {
     Gradient(GradientPattern),
     Ring(RingPattern),
     Checkered(CheckeredPattern),
+    #[cfg(test)]
+    TestPattern,
 }
 
 impl Pattern {
@@ -48,6 +50,8 @@ impl Pattern {
             PatternType::Gradient(pattern_type) => pattern_type.pattern_at(point),
             PatternType::Ring(pattern_type) => pattern_type.pattern_at(point),
             PatternType::Checkered(pattern_type) => pattern_type.pattern_at(point),
+            #[cfg(test)]
+            PatternType::TestPattern => tests::TestPattern::pattern_at(point),
         }
     }
 
@@ -146,6 +150,20 @@ mod tests {
     use super::*;
     use crate::shape::Object;
 
+    impl Pattern {
+        pub fn test() -> Self {
+            Self::new(PatternType::TestPattern)
+        }
+    }
+
+    #[derive(Copy, Clone)]
+    pub struct TestPattern {}
+    impl TestPattern {
+        pub fn pattern_at(point: Tuple) -> Color {
+            Color::new(point.x, point.y, point.z)
+        }
+    }
+
     #[test]
     fn creating_a_stripe_pattern() {
         let pattern = StripePattern::new(Color::white(), Color::black());
@@ -229,6 +247,54 @@ mod tests {
         let c = pattern.pattern_at_object(object, Tuple::point(2.5, 0., 0.));
 
         assert_eq!(c, Color::white());
+    }
+
+    #[test]
+    fn the_default_pattern_transformation() {
+        let pattern = Pattern::test();
+
+        assert_eq!(pattern.transform, Matrix4::identity())
+    }
+
+    #[test]
+    fn assigning_a_transformation() {
+        let mut pattern = Pattern::test();
+
+        *pattern.transform_mut() = Matrix4::translation(1., 2., 3.);
+
+        assert_eq!(pattern.transform, Matrix4::translation(1., 2., 3.));
+    }
+
+    #[test]
+    fn a_pattern_with_an_object_transformation() {
+        let mut shape = Object::sphere();
+        *shape.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let pattern = Pattern::test();
+        let c = pattern.pattern_at_object(shape, Tuple::point(2., 3., 4.));
+
+        assert_eq!(c, Color::new(1., 1.5, 2.));
+    }
+
+    #[test]
+    fn a_pattern_with_a_pattern_transformation() {
+        let shape = Object::sphere();
+        let mut pattern = Pattern::test();
+        *pattern.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let c = pattern.pattern_at_object(shape, Tuple::point(2., 3., 4.));
+
+        assert_eq!(c, Color::new(1., 1.5, 2.));
+    }
+
+    #[test]
+    fn a_pattern_with_both_an_object_and_a_pattern_transformation() {
+        let mut shape = Object::sphere();
+        *shape.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let mut pattern = Pattern::test();
+        *pattern.transform_mut() = Matrix4::translation(0.5, 1., 1.5);
+
+        let c = pattern.pattern_at_object(shape, Tuple::point(2.5, 3., 3.5));
+
+        assert_eq!(c, Color::new(0.75, 0.5, 0.25));
     }
 
     #[test]
