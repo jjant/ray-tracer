@@ -54,8 +54,8 @@ impl World {
             comps.object,
             self.light
                 .expect("Expected light to be present in shade_hit"),
-            // Testing to remove acne from floor with checkered pattern (https://forum.raytracerchallenge.com/thread/204/avoid-noise-checkers-pattern-planes)
-            // comps.point,
+            // Use comps.over_point instead of comps.point remove acne from floor with checkered pattern.
+            // See https://forum.raytracerchallenge.com/thread/204/avoid-noise-checkers-pattern-planes
             comps.over_point,
             comps.eye_vector,
             comps.normal_vector,

@@ -3,6 +3,8 @@ use crate::{
     pattern::Pattern, shape::Object, transformations, tuple::Tuple, world::World,
 };
 
+/// Scene by Manoël Trapier
+/// https://github.com/Godzil/DoRayMe/blob/45f5f8098e50ce746d4d4d130cffea1b9f98174f/tests/ch11_test.cpp
 pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut world = World::new();
 
