@@ -79,6 +79,7 @@ fn test_scene() -> (Camera, World) {
         examples::back_wall(),
         examples::right_wall(),
     ];
+
     world.light = Some(Light::point_light(
         Tuple::point(-10., 10., -10.),
         Color::white(),
