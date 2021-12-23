@@ -108,7 +108,7 @@ impl PartialEq for Intersection {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct ComputedIntersection {
     pub t: f64,
     pub object: Object,
@@ -121,6 +121,31 @@ pub struct ComputedIntersection {
     pub under_point: Tuple,
     pub n1: f64,
     pub n2: f64,
+}
+
+impl ComputedIntersection {
+    pub fn schlick(&self) -> f64 {
+        // find the cosine of the angle between the eye and normal vectors
+        let mut cos = self.eye_vector.dot(self.normal_vector);
+
+        // total internal reflection can only occur if n1 > n2
+        if self.n1 > self.n2 {
+            let n = self.n1 / self.n2;
+            let sin2_t = n.powi(2) * (1.0 - cos.powi(2));
+
+            if sin2_t > 1.0 {
+                return 1.0;
+            }
+            // compute cosine of theta_t using trig identity
+            let cos_t = (1. - sin2_t).sqrt();
+
+            // when n1 > n2, use cos(theta_t) instead
+            cos = cos_t
+        }
+        let r0 = ((self.n1 - self.n2) / (self.n1 + self.n2)).powi(2);
+
+        return r0 + (1. - r0) * (1. - cos).powi(5);
+    }
 }
 
 #[cfg(test)]
@@ -304,5 +329,44 @@ mod tests {
 
         assert!(comps.under_point.z > EPSILON / 2.);
         assert!(comps.point.z < comps.under_point.z);
+    }
+
+    #[test]
+    fn the_schlick_approximation_under_total_internal_reflection() {
+        let shape = Object::glass_sphere();
+        let r = Ray::new(
+            Tuple::point(0., 0., 2_f64.sqrt() / 2.),
+            Tuple::vector(0., 1., 0.),
+        );
+        let xs = vec![
+            Intersection::new(-2_f64.sqrt() / 2., shape),
+            Intersection::new(2_f64.sqrt() / 2., shape),
+        ];
+        let comps = xs[1].prepare_computations(r, &xs);
+        let reflectance = comps.schlick();
+
+        assert!(approx_equal(reflectance, 1.));
+    }
+
+    #[test]
+    fn the_schlick_approximation_with_a_perpendicular_viewing_angle() {
+        let shape = Object::glass_sphere();
+        let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 1., 0.));
+        let xs = vec![Intersection::new(-1., shape), Intersection::new(1., shape)];
+        let comps = xs[1].prepare_computations(r, &xs);
+        let reflectance = comps.schlick();
+
+        assert!(approx_equal(reflectance, 0.04));
+    }
+
+    #[test]
+    fn the_schlick_approximation_with_small_angle_and_n2_greater_than_n1() {
+        let shape = Object::glass_sphere();
+        let r = Ray::new(Tuple::point(0., 0.99, -2.), Tuple::vector(0., 0., 1.));
+        let xs = vec![Intersection::new(1.8589, shape)];
+        let comps = xs[0].prepare_computations(r, &xs);
+        let reflectance = comps.schlick();
+
+        assert!(approx_equal(reflectance, 0.48873));
     }
 }

@@ -5,6 +5,9 @@ use crate::material;
 use crate::ray::Ray;
 use crate::shape::Object;
 use crate::tuple::Tuple;
+
+const DEFAULT_ALLOWED_DEPTH: i32 = 8;
+
 pub struct World {
     pub objects: Vec<Object>,
     pub light: Option<Light>,
@@ -19,9 +22,7 @@ impl World {
     }
 
     pub fn color_at(&self, ray: Ray) -> Color {
-        let default_allowed_depth = 5;
-
-        self.color_at_with_depth(ray, default_allowed_depth)
+        self.color_at_with_depth(ray, DEFAULT_ALLOWED_DEPTH)
     }
 
     pub fn color_at_with_depth(&self, ray: Ray, remaining_depth: i32) -> Color {
@@ -64,7 +65,15 @@ impl World {
         let reflected_color = self.reflected_color(comps, remaining_depth);
         let refracted_color = self.refracted_color(comps, remaining_depth);
 
-        surface_color + reflected_color + refracted_color
+        let material = comps.object.material();
+
+        if material.reflective > 0. && material.transparency > 0. {
+            let reflectance = comps.schlick();
+
+            surface_color + reflected_color * reflectance + refracted_color * (1. - reflectance)
+        } else {
+            surface_color + reflected_color + refracted_color
+        }
     }
 
     fn is_shadowed(&self, point: Tuple) -> bool {
@@ -90,8 +99,8 @@ impl World {
         if no_depth_remaining {
             return default_color;
         }
-
-        if let Some(reflective) = comps.object.material().reflective {
+        let reflective = comps.object.material().reflective;
+        if reflective > 0. {
             let reflect_ray = Ray::new(comps.over_point, comps.reflect_vector);
             let color = self.color_at_with_depth(reflect_ray, remaining_depth - 1);
 
@@ -332,7 +341,7 @@ mod tests {
     fn the_reflected_color_for_a_reflective_material() {
         let mut w = World::default();
         let mut shape = Object::plane();
-        shape.material_mut().reflective = Some(0.5);
+        shape.material_mut().reflective = 0.5;
         *shape.transform_mut() = Matrix4::translation(0., -1., 0.);
         w.objects.push(shape);
 
@@ -351,7 +360,7 @@ mod tests {
     fn shade_hit_with_a_reflective_material() {
         let mut w = World::default();
         let mut shape = Object::plane();
-        shape.material_mut().reflective = Some(0.5);
+        shape.material_mut().reflective = 0.5;
         *shape.transform_mut() = Matrix4::translation(0., -1., 0.);
         w.objects.push(shape);
         let r = Ray::new(
@@ -374,12 +383,12 @@ mod tests {
         ));
 
         let mut lower = Object::plane();
-        lower.material_mut().reflective = Some(1.);
+        lower.material_mut().reflective = 1.;
         *lower.transform_mut() = Matrix4::translation(0., -1., 0.);
         w.objects.push(lower);
 
         let mut upper = Object::plane();
-        upper.material_mut().reflective = Some(1.);
+        upper.material_mut().reflective = 1.;
         *upper.transform_mut() = Matrix4::translation(0., 1., 0.);
         w.objects.push(upper);
 
@@ -393,7 +402,7 @@ mod tests {
     fn the_reflected_color_at_the_maximum_recursive_depth() {
         let mut w = World::default();
         let mut shape = Object::plane();
-        shape.material_mut().reflective = Some(0.5);
+        shape.material_mut().reflective = 0.5;
         *shape.transform_mut() = Matrix4::translation(0., -1., 0.);
         w.objects.push(shape);
         let r = Ray::new(
@@ -514,5 +523,33 @@ mod tests {
         let color = w.shade_hit(comps, 5);
 
         assert_eq!(color, Color::new(0.93642, 0.68642, 0.68642));
+    }
+
+    #[test]
+    fn shade_hit_with_a_reflective_transparent_material() {
+        let mut w = World::default();
+        let r = Ray::new(
+            Tuple::point(0., 0., -3.),
+            Tuple::vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
+        );
+
+        let mut floor = Object::plane();
+        *floor.transform_mut() = Matrix4::translation(0., -1., 0.);
+        floor.material_mut().reflective = 0.5;
+        floor.material_mut().transparency = 0.5;
+        floor.material_mut().refractive_index = 1.5;
+        w.objects.push(floor);
+
+        let mut ball = Object::sphere();
+        ball.material_mut().color = Color::new(1., 0., 0.);
+        ball.material_mut().ambient = 0.5;
+        *ball.transform_mut() = Matrix4::translation(0., -3.5, -0.5);
+        w.objects.push(ball);
+
+        let xs = vec![Intersection::new(2_f64.sqrt(), floor)];
+        let comps = xs[0].prepare_computations(r, &xs);
+        let color = w.shade_hit(comps, 5);
+
+        assert_eq!(color, Color::new(0.93391, 0.69643, 0.69243));
     }
 }

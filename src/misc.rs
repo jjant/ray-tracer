@@ -4,7 +4,7 @@ pub fn degrees(angle_in_deg: f64) -> f64 {
     angle_in_deg * PI / 180.
 }
 
-pub const EPSILON: f64 = 1e-7;
+pub const EPSILON: f64 = 1e-8;
 
 /// Compare floats with a hardcoded precision of
 /// 5 significant digits.

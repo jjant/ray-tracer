@@ -12,7 +12,7 @@ pub struct Material {
     pub diffuse: f64,
     pub specular: f64,
     pub shininess: f64,
-    pub reflective: Option<f64>,
+    pub reflective: f64,
     pattern: Option<Pattern>,
     pub transparency: f64,
     pub refractive_index: f64,
@@ -26,10 +26,10 @@ impl Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.,
-            reflective: None,
+            reflective: 0.,
             pattern: None,
-            transparency: 0.0,
-            refractive_index: 1.0,
+            transparency: 0.,
+            refractive_index: 1.,
         }
     }
 
@@ -122,7 +122,7 @@ mod tests {
         assert!(approx_equal(m.diffuse, 0.9));
         assert!(approx_equal(m.specular, 0.9));
         assert!(approx_equal(m.shininess, 200.));
-        assert!(m.reflective.is_none());
+        assert_eq!(m.reflective, 0.);
     }
 
     #[test]
