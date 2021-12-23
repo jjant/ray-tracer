@@ -165,29 +165,6 @@ mod tests {
         }
     }
 
-    impl World {
-        pub fn default() -> Self {
-            let mut s1 = Object::sphere();
-            {
-                let material = s1.material_mut();
-                material.color = Color::new(0.8, 1.0, 0.6);
-                material.diffuse = 0.7;
-                material.specular = 0.2;
-            }
-
-            let mut s2 = Object::sphere();
-            *s2.transform_mut() = Matrix4::scaling(0.5, 0.5, 0.5);
-
-            Self {
-                objects: vec![s1, s2],
-                light: Some(Light::point_light(
-                    Tuple::point(-10., 10., -10.),
-                    Color::white(),
-                )),
-            }
-        }
-    }
-
     #[test]
     fn creating_a_world() {
         let w = World::new();
