@@ -1,6 +1,8 @@
 mod camera;
 mod canvas;
 mod color;
+mod examples;
+
 mod intersection;
 mod light;
 mod material;
@@ -19,9 +21,12 @@ mod world;
 
 use canvas::Canvas;
 use color::Color;
+use examples::chapter_11;
 use light::Light;
 use matrix4::Matrix4;
 use std::f64::consts::PI;
+use std::fs::File;
+use std::io::Write;
 use tuple::Tuple;
 
 use crate::{
@@ -29,44 +34,52 @@ use crate::{
     world::World,
 };
 
-const WIDTH: usize = 500;
-const HEIGHT: usize = 300;
+const WIDTH: usize = 320;
+const HEIGHT: usize = 190;
 
-fn draw_world() -> Canvas {
+fn test_scene() -> (Camera, World) {
     let mut floor = Object::plane();
     *floor.material_mut() =
         Material::with_pattern(Pattern::checkered(Color::black(), Color::white()));
     floor.material_mut().color = Color::new(1., 0.9, 0.9);
     floor.material_mut().specular = 0.;
 
-    let mut middle = Object::sphere();
+    let mut middle = Object::glass_sphere();
     *middle.transform_mut() = Matrix4::translation(-0.5, 1., 0.5);
-    let mut pattern = Pattern::ring(Color::rgb255(0, 240, 10), Color::rgb255(10, 200, 25));
-    *pattern.transform_mut() = Matrix4::rotation_z(degrees(35.))
-        * Matrix4::rotation_x(degrees(-60.))
-        * Matrix4::scaling(0.45, 0.45, 0.45);
-    *middle.material_mut() = Material::with_pattern(pattern);
-    middle.material_mut().color = Color::new(0.1, 1., 0.5);
-    middle.material_mut().diffuse = 0.7;
-    middle.material_mut().specular = 0.3;
+    // let mut pattern = Pattern::ring(Color::rgb255(0, 240, 10), Color::rgb255(10, 200, 25));
+    // *pattern.transform_mut() = Matrix4::rotation_z(degrees(35.))
+    //     * Matrix4::rotation_x(degrees(-60.))
+    //     * Matrix4::scaling(0.45, 0.45, 0.45);
+    // middle.material_mut().color = Color::new(0.1, 1., 0.5);
+    // middle.material_mut().diffuse = 0.7;
+    // middle.material_mut().specular = 0.3;
+    middle.material_mut().reflective = 1.;
 
     let mut right = Object::sphere();
     *right.transform_mut() = Matrix4::translation(1.5, 0.5, -0.5) * Matrix4::scaling(0.5, 0.5, 0.5);
-    *right.material_mut() = Material::with_pattern(Pattern::striped(Color::red(), Color::green()));
     right.material_mut().color = Color::new(0.5, 1., 0.1);
     right.material_mut().diffuse = 0.7;
     right.material_mut().specular = 0.3;
+    right.material_mut().reflective = 1.0;
 
     let mut left = Object::sphere();
     *left.transform_mut() =
         Matrix4::translation(-1.5, 0.33, -0.75) * Matrix4::scaling(0.33, 0.33, 0.33);
-    *left.material_mut() = Material::with_pattern(Pattern::gradient(Color::red(), Color::green()));
     left.material_mut().color = Color::new(1., 0.8, 0.1);
     left.material_mut().diffuse = 0.7;
     left.material_mut().specular = 0.3;
+    left.material_mut().reflective = 1.0;
 
     let mut world = World::new();
-    world.objects = vec![floor, middle, right, left];
+    world.objects = vec![
+        floor,
+        middle,
+        right,
+        left,
+        examples::back_wall(),
+        examples::right_wall(),
+    ];
+
     world.light = Some(Light::point_light(
         Tuple::point(-10., 10., -10.),
         Color::white(),
@@ -79,9 +92,15 @@ fn draw_world() -> Canvas {
         Tuple::vector(0., 1., 0.),
     );
 
-    camera.render(&world)
+    (camera, world)
 }
 
 fn main() {
-    println!("{}", draw_world().to_ppm());
+    let (camera, world) = chapter_11::scene(1280, 1280 / 2);
+    // let (camera, world) = test_scene();
+
+    let ppm = camera.render(&world).to_ppm();
+
+    let mut f = File::create("./output.ppm").expect("Unable to create file");
+    f.write_all(ppm.as_bytes()).expect("Unable to write data");
 }

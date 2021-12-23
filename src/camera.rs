@@ -56,7 +56,11 @@ impl Camera {
 
     pub fn render(self, world: &World) -> Canvas {
         let mut canvas = Canvas::new(self.hsize as usize, self.vsize as usize);
+        let total_pixels = self.vsize * self.hsize;
 
+        println!("Computing: {} pixels.", total_pixels);
+
+        let mut total_done = 0;
         for y in 0..self.vsize {
             for x in 0..self.hsize {
                 let ray = self.ray_for_pixel(x, y);
@@ -64,6 +68,12 @@ impl Camera {
 
                 canvas.write_pixel(x, y, color);
             }
+            total_done += self.hsize;
+            println!(
+                "Computed: {}({}%) pixels.",
+                total_done,
+                (100. * (total_done as f64 / total_pixels as f64)).round()
+            );
         }
 
         canvas

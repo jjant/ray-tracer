@@ -1,2 +1,4 @@
 /target
 *.ppm
+*.png
+.DS_Store
