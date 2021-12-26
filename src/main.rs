@@ -3,6 +3,7 @@ mod canvas;
 mod color;
 mod examples;
 
+mod cube;
 mod intersection;
 mod light;
 mod material;
@@ -22,6 +23,7 @@ mod world;
 use canvas::Canvas;
 use color::Color;
 use examples::chapter_11;
+use examples::chapter_12;
 use light::Light;
 use matrix4::Matrix4;
 use std::f64::consts::PI;
@@ -96,7 +98,7 @@ fn test_scene() -> (Camera, World) {
 }
 
 fn main() {
-    let (camera, world) = chapter_11::scene(1280, 1280 / 2);
+    let (camera, world) = chapter_12::scene(640, 640 / 2);
     // let (camera, world) = test_scene();
 
     let ppm = camera.render(&world).to_ppm();
