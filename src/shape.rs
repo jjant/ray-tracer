@@ -1,3 +1,4 @@
+use crate::cone::Cone;
 use crate::cylinder::Cylinder;
 use crate::plane::Plane;
 use crate::{
@@ -18,6 +19,7 @@ pub enum Shape {
     Plane,
     Cube,
     Cylinder(Cylinder),
+    Cone(Cone),
 }
 
 impl Shape {
@@ -27,6 +29,7 @@ impl Shape {
             Shape::Plane => Plane::local_normal_at(local_point),
             Shape::Cube => Cube::local_normal_at(local_point),
             Shape::Cylinder(cylinder) => cylinder.local_normal_at(local_point),
+            Shape::Cone(cone) => cone.local_normal_at(local_point),
         }
     }
 
@@ -36,6 +39,7 @@ impl Shape {
             Shape::Plane => Plane::local_intersect(local_ray),
             Shape::Cube => Cube::local_intersect(local_ray),
             Shape::Cylinder(cylinder) => cylinder.local_intersect(local_ray),
+            Shape::Cone(cone) => cone.local_intersect(local_ray),
         }
     }
 }
@@ -68,6 +72,11 @@ impl Object {
     #[allow(dead_code)]
     pub fn cylinder() -> Self {
         Self::new(Shape::Cylinder(Cylinder::new()))
+    }
+
+    #[allow(dead_code)]
+    pub fn cone() -> Self {
+        Self::new(Shape::Cone(Cone::new()))
     }
 
     pub fn transform(&self) -> Matrix4 {

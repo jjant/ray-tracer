@@ -3,6 +3,7 @@ mod canvas;
 mod color;
 mod examples;
 
+mod cone;
 mod cube;
 mod cylinder;
 mod intersection;
