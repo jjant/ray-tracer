@@ -26,7 +26,7 @@ impl Shape {
             Shape::Sphere => Sphere::local_normal_at(local_point),
             Shape::Plane => Plane::local_normal_at(local_point),
             Shape::Cube => Cube::local_normal_at(local_point),
-            Shape::Cylinder(_) => Cylinder::local_normal_at(local_point),
+            Shape::Cylinder(cylinder) => cylinder.local_normal_at(local_point),
         }
     }
 

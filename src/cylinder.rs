@@ -6,6 +6,7 @@ use crate::{misc::EPSILON, ray::Ray, tuple::Tuple};
 pub struct Cylinder {
     minimum: f64,
     maximum: f64,
+    closed: bool,
 }
 
 impl Cylinder {
@@ -13,6 +14,7 @@ impl Cylinder {
         Self {
             minimum: NEG_INFINITY,
             maximum: INFINITY,
+            closed: false,
         }
     }
 
@@ -20,7 +22,7 @@ impl Cylinder {
         let a = ray.direction.x.powi(2) + ray.direction.z.powi(2);
 
         if a.abs() < EPSILON {
-            return vec![];
+            return self.intersect_caps(ray);
         }
 
         let b = 2. * ray.origin.x * ray.direction.x + 2. * ray.origin.z * ray.direction.z;
@@ -46,13 +48,48 @@ impl Cylinder {
                 xs.push(t1);
             }
 
+            xs.append(&mut self.intersect_caps(ray));
             xs
         }
     }
 
-    pub fn local_normal_at(local_point: Tuple) -> Tuple {
-        Tuple::vector(local_point.x, 0., local_point.z)
+    pub fn local_normal_at(&self, local_point: Tuple) -> Tuple {
+        let dist = local_point.x.powi(2) + local_point.z.powi(2);
+
+        if dist < 1. && local_point.y >= self.maximum - EPSILON {
+            Tuple::vector(0., 1., 0.)
+        } else if dist < 1. && local_point.y <= self.minimum + EPSILON {
+            Tuple::vector(0., -1., 0.)
+        } else {
+            Tuple::vector(local_point.x, 0., local_point.z)
+        }
     }
+
+    fn intersect_caps(&self, ray: Ray) -> Vec<f64> {
+        let mut xs = Vec::with_capacity(2);
+
+        if !self.closed || ray.direction.y.abs() < EPSILON {
+            return xs;
+        }
+
+        let t_min = (self.minimum - ray.origin.y) / ray.direction.y;
+        let t_max = (self.maximum - ray.origin.y) / ray.direction.y;
+
+        [t_min, t_max]
+            .into_iter()
+            .filter(|t| check_cap(ray, *t))
+            .for_each(|t| xs.push(t));
+
+        xs
+    }
+}
+
+fn check_cap(ray: Ray, t: f64) -> bool {
+    let x = ray.origin.x + t * ray.direction.x;
+    let z = ray.origin.z + t * ray.direction.z;
+    let r = 1.;
+
+    x.powi(2) + z.powi(2) <= r
 }
 
 impl PartialEq for Cylinder {
@@ -120,8 +157,9 @@ mod tests {
             (Tuple::point(-1., 1., 0.), Tuple::vector(-1., 0., 0.)),
         ];
 
+        let cyl = Cylinder::new();
         for (point, expected_normal) in examples {
-            let normal = Cylinder::local_normal_at(point);
+            let normal = cyl.local_normal_at(point);
 
             assert_eq!(normal, expected_normal);
         }
@@ -155,6 +193,60 @@ mod tests {
             let xs = cyl.local_intersect(r);
 
             assert_eq!(xs.len(), count)
+        }
+    }
+
+    #[test]
+    fn the_default_closed_value_for_a_cylinder() {
+        let cyl = Cylinder::new();
+
+        assert!(!cyl.closed);
+    }
+
+    #[test]
+    fn intersecting_the_caps_of_a_closed_cylinder() {
+        let mut cyl = Cylinder::new();
+        cyl.minimum = 1.;
+        cyl.maximum = 2.;
+        cyl.closed = true;
+
+        let examples = vec![
+            (Tuple::point(0., 3., 0.), Tuple::vector(0., -1., 0.), 2),
+            (Tuple::point(0., 3., -2.), Tuple::vector(0., -1., 2.), 2),
+            (Tuple::point(0., 4., -2.), Tuple::vector(0., -1., 1.), 2),
+            (Tuple::point(0., 0., -2.), Tuple::vector(0., 1., 2.), 2),
+            (Tuple::point(0., -1., -2.), Tuple::vector(0., 1., 1.), 2),
+        ];
+
+        for (point, direction, count) in examples {
+            let direction = direction.normalize();
+            let r = Ray::new(point, direction);
+            let xs = cyl.local_intersect(r);
+
+            assert_eq!(xs.len(), count);
+        }
+    }
+
+    #[test]
+    fn the_normal_vector_on_a_cylinders_end_caps() {
+        let mut cyl = Cylinder::new();
+        cyl.minimum = 1.;
+        cyl.maximum = 2.;
+        cyl.closed = true;
+
+        let examples = vec![
+            (Tuple::point(0., 1., 0.), Tuple::vector(0., -1., 0.)),
+            (Tuple::point(0.5, 1., 0.), Tuple::vector(0., -1., 0.)),
+            (Tuple::point(0., 1., 0.5), Tuple::vector(0., -1., 0.)),
+            (Tuple::point(0., 2., 0.), Tuple::vector(0., 1., 0.)),
+            (Tuple::point(0.5, 2., 0.), Tuple::vector(0., 1., 0.)),
+            (Tuple::point(0., 2., 0.5), Tuple::vector(0., 1., 0.)),
+        ];
+
+        for (point, normal) in examples {
+            let n = cyl.local_normal_at(point);
+
+            assert_eq!(n, normal)
         }
     }
 }
