@@ -120,6 +120,7 @@ impl Matrix4 {
         ])
     }
 
+    #[allow(dead_code)]
     pub fn scaling(x: f64, y: f64, z: f64) -> Self {
         Self::from_rows([
             [x, 0., 0., 0.],

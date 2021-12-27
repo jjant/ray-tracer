@@ -1,7 +1,7 @@
 use crate::plane::Plane;
 use crate::{
-    intersection::Intersection, material::Material, matrix4::Matrix4, ray::Ray, sphere::Sphere,
-    tuple::Tuple,
+    cube::Cube, intersection::Intersection, material::Material, matrix4::Matrix4, ray::Ray,
+    sphere::Sphere, tuple::Tuple,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -15,6 +15,7 @@ pub struct Object {
 pub enum Shape {
     Sphere,
     Plane,
+    Cube,
 }
 
 impl Shape {
@@ -22,6 +23,7 @@ impl Shape {
         match self {
             Shape::Sphere => Sphere::local_normal_at(local_point),
             Shape::Plane => Plane::local_normal_at(local_point),
+            Shape::Cube => Cube::local_normal_at(local_point),
         }
     }
 
@@ -29,6 +31,7 @@ impl Shape {
         match self {
             Shape::Sphere => Sphere::local_intersect(local_ray),
             Shape::Plane => Plane::local_intersect(local_ray),
+            Shape::Cube => Cube::local_intersect(local_ray),
         }
     }
 }
@@ -43,13 +46,19 @@ impl Object {
     }
 
     /// TODO: Document
+    #[allow(dead_code)]
     pub fn sphere() -> Self {
         Self::new(Shape::Sphere)
     }
 
     /// TODO: Document (specially that it defaults to an XZ plane)
+    #[allow(dead_code)]
     pub fn plane() -> Self {
         Self::new(Shape::Plane)
+    }
+
+    pub fn cube() -> Self {
+        Self::new(Shape::Cube)
     }
 
     pub fn transform(&self) -> Matrix4 {

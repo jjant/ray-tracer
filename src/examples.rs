@@ -1,4 +1,5 @@
 pub mod chapter_11;
+pub mod chapter_12;
 
 use crate::{
     color::Color, material::Material, matrix4::Matrix4, misc::degrees, pattern::Pattern,
