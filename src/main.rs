@@ -4,6 +4,7 @@ mod color;
 mod examples;
 
 mod cube;
+mod cylinder;
 mod intersection;
 mod light;
 mod material;
