@@ -1,3 +1,5 @@
+use crate::cone::Cone;
+use crate::cylinder::Cylinder;
 use crate::plane::Plane;
 use crate::{
     cube::Cube, intersection::Intersection, material::Material, matrix4::Matrix4, ray::Ray,
@@ -16,6 +18,8 @@ pub enum Shape {
     Sphere,
     Plane,
     Cube,
+    Cylinder(Cylinder),
+    Cone(Cone),
 }
 
 impl Shape {
@@ -24,6 +28,8 @@ impl Shape {
             Shape::Sphere => Sphere::local_normal_at(local_point),
             Shape::Plane => Plane::local_normal_at(local_point),
             Shape::Cube => Cube::local_normal_at(local_point),
+            Shape::Cylinder(cylinder) => cylinder.local_normal_at(local_point),
+            Shape::Cone(cone) => cone.local_normal_at(local_point),
         }
     }
 
@@ -32,6 +38,8 @@ impl Shape {
             Shape::Sphere => Sphere::local_intersect(local_ray),
             Shape::Plane => Plane::local_intersect(local_ray),
             Shape::Cube => Cube::local_intersect(local_ray),
+            Shape::Cylinder(cylinder) => cylinder.local_intersect(local_ray),
+            Shape::Cone(cone) => cone.local_intersect(local_ray),
         }
     }
 }
@@ -59,6 +67,16 @@ impl Object {
 
     pub fn cube() -> Self {
         Self::new(Shape::Cube)
+    }
+
+    #[allow(dead_code)]
+    pub fn cylinder() -> Self {
+        Self::new(Shape::Cylinder(Cylinder::new()))
+    }
+
+    #[allow(dead_code)]
+    pub fn cone() -> Self {
+        Self::new(Shape::Cone(Cone::new()))
     }
 
     pub fn transform(&self) -> Matrix4 {
@@ -101,6 +119,7 @@ impl Object {
         world_normal.normalize()
     }
 
+    #[allow(dead_code)]
     pub fn glass_sphere() -> Self {
         let mut s = Self::sphere();
 
