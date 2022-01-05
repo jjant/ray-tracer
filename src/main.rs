@@ -22,10 +22,9 @@ mod transformations;
 mod tuple;
 mod world;
 
-use canvas::Canvas;
 use color::Color;
-use examples::chapter_11;
-use examples::chapter_12;
+#[allow(unused_imports)]
+use examples::{chapter_11, chapter_12, chapter_13};
 use light::Light;
 use matrix4::Matrix4;
 use std::f64::consts::PI;
@@ -33,13 +32,7 @@ use std::fs::File;
 use std::io::Write;
 use tuple::Tuple;
 
-use crate::{
-    camera::Camera, material::Material, misc::degrees, pattern::Pattern, shape::Object,
-    world::World,
-};
-
-const WIDTH: usize = 320;
-const HEIGHT: usize = 190;
+use crate::{camera::Camera, material::Material, pattern::Pattern, shape::Object, world::World};
 
 fn test_scene() -> (Camera, World) {
     let mut floor = Object::plane();
@@ -99,9 +92,11 @@ fn test_scene() -> (Camera, World) {
     (camera, world)
 }
 
+const WIDTH: usize = 320;
+const HEIGHT: usize = 190;
+
 fn main() {
-    let (camera, world) = chapter_12::scene(640, 640 / 2);
-    // let (camera, world) = test_scene();
+    let (camera, world) = chapter_13::scene(WIDTH, HEIGHT);
 
     let ppm = camera.render(&world).to_ppm();
 

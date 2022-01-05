@@ -4,9 +4,9 @@ use crate::{misc::EPSILON, ray::Ray, tuple::Tuple};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Cylinder {
-    minimum: f64,
-    maximum: f64,
-    closed: bool,
+    pub minimum: f64,
+    pub maximum: f64,
+    pub closed: bool,
 }
 
 impl Cylinder {
