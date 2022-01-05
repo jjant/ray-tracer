@@ -32,16 +32,18 @@ use std::fs::File;
 use std::io::Write;
 use tuple::Tuple;
 
-use crate::{camera::Camera, material::Material, pattern::Pattern, shape::Object, world::World};
+use crate::{
+    camera::Camera, material::Material, pattern::Pattern, shape::SimpleObject, world::World,
+};
 
 fn test_scene() -> (Camera, World) {
-    let mut floor = Object::plane();
+    let mut floor = SimpleObject::plane();
     *floor.material_mut() =
         Material::with_pattern(Pattern::checkered(Color::black(), Color::white()));
     floor.material_mut().color = Color::new(1., 0.9, 0.9);
     floor.material_mut().specular = 0.;
 
-    let mut middle = Object::glass_sphere();
+    let mut middle = SimpleObject::glass_sphere();
     *middle.transform_mut() = Matrix4::translation(-0.5, 1., 0.5);
     // let mut pattern = Pattern::ring(Color::rgb255(0, 240, 10), Color::rgb255(10, 200, 25));
     // *pattern.transform_mut() = Matrix4::rotation_z(degrees(35.))
@@ -52,14 +54,14 @@ fn test_scene() -> (Camera, World) {
     // middle.material_mut().specular = 0.3;
     middle.material_mut().reflective = 1.;
 
-    let mut right = Object::sphere();
+    let mut right = SimpleObject::sphere();
     *right.transform_mut() = Matrix4::translation(1.5, 0.5, -0.5) * Matrix4::scaling(0.5, 0.5, 0.5);
     right.material_mut().color = Color::new(0.5, 1., 0.1);
     right.material_mut().diffuse = 0.7;
     right.material_mut().specular = 0.3;
     right.material_mut().reflective = 1.0;
 
-    let mut left = Object::sphere();
+    let mut left = SimpleObject::sphere();
     *left.transform_mut() =
         Matrix4::translation(-1.5, 0.33, -0.75) * Matrix4::scaling(0.33, 0.33, 0.33);
     left.material_mut().color = Color::new(1., 0.8, 0.1);
@@ -68,14 +70,12 @@ fn test_scene() -> (Camera, World) {
     left.material_mut().reflective = 1.0;
 
     let mut world = World::new();
-    world.objects = vec![
-        floor,
-        middle,
-        right,
-        left,
-        examples::back_wall(),
-        examples::right_wall(),
-    ];
+    world.add_object(floor);
+    world.add_object(middle);
+    world.add_object(right);
+    world.add_object(left);
+    world.add_object(examples::back_wall());
+    world.add_object(examples::right_wall());
 
     world.light = Some(Light::point_light(
         Tuple::point(-10., 10., -10.),
@@ -92,12 +92,33 @@ fn test_scene() -> (Camera, World) {
     (camera, world)
 }
 
+fn test_scene2(width: usize, height: usize) -> (Camera, World) {
+    let mut world = World::new();
+
+    println!("before add");
+    world.add_group(shape::hexagon());
+    println!("after add");
+    world.light = Some(Light::point_light(
+        Tuple::point(-10., 10., -10.),
+        Color::white(),
+    ));
+
+    let mut camera = Camera::new(width as i32, height as i32, PI / 3.);
+    camera.transform = transformations::view_transform(
+        Tuple::point(0., 1.5, -5.),
+        Tuple::point(0., 1., 0.),
+        Tuple::vector(0., 1., 0.),
+    );
+
+    (camera, world)
+}
 const WIDTH: usize = 320;
 const HEIGHT: usize = 190;
 
 fn main() {
-    let (camera, world) = chapter_13::scene(WIDTH, HEIGHT);
-
+    println!("HEY");
+    let (camera, world) = test_scene2(WIDTH, HEIGHT);
+    println!("HEY2");
     let ppm = camera.render(&world).to_ppm();
 
     let mut f = File::create("./output.ppm").expect("Unable to create file");

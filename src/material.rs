@@ -2,7 +2,7 @@ use crate::color::Color;
 use crate::light::Light;
 use crate::misc::approx_equal;
 use crate::pattern::Pattern;
-use crate::shape::Object;
+use crate::shape::{Object, SimpleObject};
 use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
@@ -53,7 +53,7 @@ impl PartialEq for Material {
 
 pub fn lighting(
     material: Material,
-    object: Object,
+    object: SimpleObject,
     light: Light,
     point: Tuple,
     eye_vector: Tuple,

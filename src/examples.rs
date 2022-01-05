@@ -4,7 +4,7 @@ pub mod chapter_13;
 
 use crate::{
     color::Color, material::Material, matrix4::Matrix4, misc::degrees, pattern::Pattern,
-    shape::Object,
+    shape::SimpleObject,
 };
 
 fn wall_material() -> Material {
@@ -22,8 +22,8 @@ fn wall_material() -> Material {
     material
 }
 
-pub fn back_wall() -> Object {
-    let mut plane = Object::plane();
+pub fn back_wall() -> SimpleObject {
+    let mut plane = SimpleObject::plane();
 
     *plane.material_mut() = wall_material();
     *plane.transform_mut() = Matrix4::translation(0., 0., 15.)
@@ -33,8 +33,8 @@ pub fn back_wall() -> Object {
     plane
 }
 
-pub fn right_wall() -> Object {
-    let mut plane = Object::plane();
+pub fn right_wall() -> SimpleObject {
+    let mut plane = SimpleObject::plane();
     *plane.material_mut() = wall_material();
     *plane.transform_mut() = Matrix4::translation(0., 0., 15.)
         * Matrix4::rotation_y(degrees(-55.0))

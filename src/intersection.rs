@@ -1,16 +1,16 @@
 use crate::misc::{approx_equal, EPSILON};
 use crate::ray::Ray;
-use crate::shape::Object;
+use crate::shape::SimpleObject;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Intersection {
     pub t: f64,
-    pub object: Object,
+    pub object: SimpleObject,
 }
 
 impl Intersection {
-    pub fn new(t: f64, object: Object) -> Self {
+    pub fn new(t: f64, object: SimpleObject) -> Self {
         Self { t, object }
     }
 
@@ -63,7 +63,7 @@ impl Intersection {
     }
 
     fn compute_refractive_indices(&self, all_intersections: &[Intersection]) -> (f64, f64) {
-        let mut containers: Vec<Object> = vec![];
+        let mut containers: Vec<SimpleObject> = vec![];
         let mut n1 = 1.0;
         let mut n2 = 1.0;
 
@@ -111,7 +111,7 @@ impl PartialEq for Intersection {
 #[derive(Clone, Copy, Debug)]
 pub struct ComputedIntersection {
     pub t: f64,
-    pub object: Object,
+    pub object: SimpleObject,
     pub point: Tuple,
     pub eye_vector: Tuple,
     pub normal_vector: Tuple,
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn an_intersection_encapsulates_t_and_object() {
-        let s = Object::sphere();
+        let s = SimpleObject::sphere();
         let i = Intersection::new(3.5, s);
 
         assert!(approx_equal(i.t, 3.5));
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn the_hit_when_all_intersections_have_positive_t() {
-        let s = Object::sphere();
+        let s = SimpleObject::sphere();
         let i1 = Intersection::new(1., s);
         let i2 = Intersection::new(2., s);
         let xs = vec![i2, i1];
@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn the_hit_when_some_intersections_have_negative_t() {
-        let s = Object::sphere();
+        let s = SimpleObject::sphere();
         let i1 = Intersection::new(-1., s);
         let i2 = Intersection::new(1., s);
         let xs = vec![i2, i1];
@@ -187,7 +187,7 @@ mod tests {
 
     #[test]
     fn the_hit_when_all_intersections_have_negative_t() {
-        let s = Object::sphere();
+        let s = SimpleObject::sphere();
         let i1 = Intersection::new(-2., s);
         let i2 = Intersection::new(-1., s);
         let xs = vec![i2, i1];
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn the_hit_is_always_the_lowest_nonnegative_intersection() {
-        let s = Object::sphere();
+        let s = SimpleObject::sphere();
         let i1 = Intersection::new(5., s);
         let i2 = Intersection::new(7., s);
         let i3 = Intersection::new(-3., s);
@@ -212,7 +212,7 @@ mod tests {
     #[test]
     fn precomputing_the_state_of_an_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let shape = Object::sphere();
+        let shape = SimpleObject::sphere();
         let intersection = Intersection::new(4., shape);
 
         let comps = intersection.prepare_computations(r, &[intersection]);
@@ -227,7 +227,7 @@ mod tests {
     #[test]
     fn the_hit_when_an_intersection_occurs_on_the_outside() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let shape = Object::sphere();
+        let shape = SimpleObject::sphere();
         let i = Intersection::new(4., shape);
         let comps = i.prepare_computations(r, &[i]);
 
@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn the_hit_when_an_intersection_occurs_on_the_inside() {
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
-        let shape = Object::sphere();
+        let shape = SimpleObject::sphere();
         let i = Intersection::new(1., shape);
         let comps = i.prepare_computations(r, &[i]);
 
@@ -251,7 +251,7 @@ mod tests {
     #[test]
     fn the_hit_should_offset_the_point() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut shape = Object::sphere();
+        let mut shape = SimpleObject::sphere();
         *shape.transform_mut() = Matrix4::translation(0., 0., 1.);
         let i = Intersection::new(5., shape);
         let comps = i.prepare_computations(r, &[i]);
@@ -262,7 +262,7 @@ mod tests {
 
     #[test]
     fn precomputing_the_reflection_vector() {
-        let shape = Object::plane();
+        let shape = SimpleObject::plane();
         let r = Ray::new(
             Tuple::point(0., 1., -1.),
             Tuple::vector(0., -2_f64.sqrt() / 2_f64, 2_f64.sqrt() / 2_f64),
@@ -278,15 +278,15 @@ mod tests {
 
     #[test]
     fn finding_n1_and_n2_at_various_intersections() {
-        let mut a = Object::glass_sphere();
+        let mut a = SimpleObject::glass_sphere();
         *a.transform_mut() = Matrix4::scaling(2., 2., 2.);
         a.material_mut().refractive_index = 1.5;
 
-        let mut b = Object::glass_sphere();
+        let mut b = SimpleObject::glass_sphere();
         *b.transform_mut() = Matrix4::translation(0., 0., -0.25);
         b.material_mut().refractive_index = 2.0;
 
-        let mut c = Object::glass_sphere();
+        let mut c = SimpleObject::glass_sphere();
         *c.transform_mut() = Matrix4::translation(0., 0., 0.25);
         c.material_mut().refractive_index = 2.5;
 
@@ -320,7 +320,7 @@ mod tests {
     #[test]
     fn the_under_point_is_offset_below_the_surface() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut shape = Object::glass_sphere();
+        let mut shape = SimpleObject::glass_sphere();
         *shape.transform_mut() = Matrix4::translation(0., 0., 1.);
 
         let i = Intersection::new(5., shape);
@@ -333,7 +333,7 @@ mod tests {
 
     #[test]
     fn the_schlick_approximation_under_total_internal_reflection() {
-        let shape = Object::glass_sphere();
+        let shape = SimpleObject::glass_sphere();
         let r = Ray::new(
             Tuple::point(0., 0., 2_f64.sqrt() / 2.),
             Tuple::vector(0., 1., 0.),
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn the_schlick_approximation_with_a_perpendicular_viewing_angle() {
-        let shape = Object::glass_sphere();
+        let shape = SimpleObject::glass_sphere();
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 1., 0.));
         let xs = vec![Intersection::new(-1., shape), Intersection::new(1., shape)];
         let comps = xs[1].prepare_computations(r, &xs);
@@ -361,7 +361,7 @@ mod tests {
 
     #[test]
     fn the_schlick_approximation_with_small_angle_and_n2_greater_than_n1() {
-        let shape = Object::glass_sphere();
+        let shape = SimpleObject::glass_sphere();
         let r = Ray::new(Tuple::point(0., 0.99, -2.), Tuple::vector(0., 0., 1.));
         let xs = vec![Intersection::new(1.8589, shape)];
         let comps = xs[0].prepare_computations(r, &xs);

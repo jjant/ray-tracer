@@ -3,7 +3,7 @@ use crate::intersection::{ComputedIntersection, Intersection};
 use crate::light::Light;
 use crate::material;
 use crate::ray::Ray;
-use crate::shape::Object;
+use crate::shape::{Object, SimpleObject};
 use crate::tuple::Tuple;
 
 const DEFAULT_ALLOWED_DEPTH: i32 = 8;
@@ -19,6 +19,14 @@ impl World {
             objects: vec![],
             light: None,
         }
+    }
+
+    pub fn add_group(&mut self, object: Object) {
+        self.objects.push(object)
+    }
+
+    pub fn add_object(&mut self, object: SimpleObject) {
+        self.objects.push(Object::from_simple(object))
     }
 
     pub fn color_at(&self, ray: Ray) -> Color {
@@ -308,10 +316,10 @@ mod tests {
         ));
 
         let s1 = Object::sphere();
-        w.objects.push(s1);
+        w.add_object(s1);
         let mut s2 = Object::sphere();
         *s2.transform_mut() = Matrix4::translation(0., 0., 10.);
-        w.objects.push(s2);
+        w.add_object(s2);
 
         let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));
         let i = Intersection::new(4., s2);
@@ -343,7 +351,7 @@ mod tests {
         let mut shape = Object::plane();
         shape.material_mut().reflective = 0.5;
         *shape.transform_mut() = Matrix4::translation(0., -1., 0.);
-        w.objects.push(shape);
+        w.add_object(shape);
 
         let r = Ray::new(
             Tuple::point(0., 0., -3.),
@@ -362,7 +370,7 @@ mod tests {
         let mut shape = Object::plane();
         shape.material_mut().reflective = 0.5;
         *shape.transform_mut() = Matrix4::translation(0., -1., 0.);
-        w.objects.push(shape);
+        w.add_object(shape);
         let r = Ray::new(
             Tuple::point(0., 0., -3.),
             Tuple::vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
@@ -385,12 +393,12 @@ mod tests {
         let mut lower = Object::plane();
         lower.material_mut().reflective = 1.;
         *lower.transform_mut() = Matrix4::translation(0., -1., 0.);
-        w.objects.push(lower);
+        w.add_object(lower);
 
         let mut upper = Object::plane();
         upper.material_mut().reflective = 1.;
         *upper.transform_mut() = Matrix4::translation(0., 1., 0.);
-        w.objects.push(upper);
+        w.add_object(upper);
 
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 1., 0.));
 
@@ -404,7 +412,7 @@ mod tests {
         let mut shape = Object::plane();
         shape.material_mut().reflective = 0.5;
         *shape.transform_mut() = Matrix4::translation(0., -1., 0.);
-        w.objects.push(shape);
+        w.add_object(shape);
         let r = Ray::new(
             Tuple::point(0., 0., -3.),
             Tuple::vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
@@ -506,13 +514,13 @@ mod tests {
         *floor.transform_mut() = Matrix4::translation(0., -1., 0.);
         floor.material_mut().transparency = 0.5;
         floor.material_mut().refractive_index = 1.5;
-        w.objects.push(floor);
+        w.add_object(floor);
 
         let mut ball = Object::sphere();
         ball.material_mut().color = Color::new(1., 0., 0.);
         ball.material_mut().ambient = 0.5;
         *ball.transform_mut() = Matrix4::translation(0., -3.5, -0.5);
-        w.objects.push(ball);
+        w.add_object(ball);
 
         let r = Ray::new(
             Tuple::point(0., 0., -3.),
@@ -538,13 +546,13 @@ mod tests {
         floor.material_mut().reflective = 0.5;
         floor.material_mut().transparency = 0.5;
         floor.material_mut().refractive_index = 1.5;
-        w.objects.push(floor);
+        w.add_object(floor);
 
         let mut ball = Object::sphere();
         ball.material_mut().color = Color::new(1., 0., 0.);
         ball.material_mut().ambient = 0.5;
         *ball.transform_mut() = Matrix4::translation(0., -3.5, -0.5);
-        w.objects.push(ball);
+        w.add_object(ball);
 
         let xs = vec![Intersection::new(2_f64.sqrt(), floor)];
         let comps = xs[0].prepare_computations(r, &xs);

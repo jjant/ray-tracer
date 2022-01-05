@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use crate::cone::Cone;
 use crate::cylinder::Cylinder;
 use crate::plane::Plane;
@@ -6,10 +8,149 @@ use crate::{
     sphere::Sphere, tuple::Tuple,
 };
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+fn hexagon_corner() -> Object {
+    let mut corner = Object::sphere();
+    corner.transform = Matrix4::translation(0., 0., -1.) * Matrix4::scaling(0.25, 0.25, 0.25);
+
+    corner
+}
+
+fn hexagon_edge() -> Object {
+    let mut edge = Cylinder::new();
+    edge.minimum = 0.;
+    edge.maximum = 1.;
+
+    let mut edge = Object::new(Shape::Cylinder(edge));
+    edge.transform = Matrix4::translation(0., 0., -1.)
+        * Matrix4::rotation_y(-PI / 6.)
+        * Matrix4::rotation_z(-PI / 2.)
+        * Matrix4::scaling(0.25, 1., 0.25);
+    edge
+}
+
+fn hexagon_side() -> Object {
+    Object::group(vec![hexagon_corner(), hexagon_edge()])
+}
+
+pub fn hexagon() -> Object {
+    let mut hex = vec![];
+
+    for n in 0..=5 {
+        let mut side = hexagon_side();
+        side.transform = Matrix4::rotation_y(n as f64 * PI / 3.);
+        hex.push(side)
+    }
+
+    Object::group(hex)
+}
 pub struct Object {
+    pub material: Material,
+    pub transform: Matrix4,
+    shape: ShapeOrGroup,
+}
+
+impl Object {
+    pub fn group(objects: Vec<Object>) -> Self {
+        Object {
+            material: Material::new(),
+            transform: Matrix4::identity(),
+            shape: ShapeOrGroup::Group(objects),
+        }
+    }
+
+    pub fn from_simple(simple: SimpleObject) -> Self {
+        let SimpleObject {
+            material,
+            transform,
+            shape,
+        } = simple;
+
+        Self {
+            material,
+            transform,
+            shape: ShapeOrGroup::Shape(shape),
+        }
+    }
+
+    /// The maths assume the sphere is located in the origin,
+    /// and it handles the general case by "unmoving" the ray with the opposite transform.
+    pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
+        let local_ray = ray.transform(self.transform.inverse().unwrap());
+
+        self.local_intersect(local_ray)
+    }
+
+    fn local_intersect(&self, ray: Ray) -> Vec<Intersection> {
+        match &self.shape {
+            ShapeOrGroup::Shape(shape) => shape
+                .local_intersect(ray)
+                .into_iter()
+                .map(|t| {
+                    Intersection::new(
+                        t,
+                        SimpleObject {
+                            material: self.material,
+                            transform: self.transform,
+                            shape: *shape,
+                        },
+                    )
+                })
+                .collect(),
+
+            ShapeOrGroup::Group(group) => group
+                .iter()
+                .flat_map(|object| object.intersect(ray))
+                .map(|i| {
+                    Intersection::new(
+                        i.t,
+                        SimpleObject {
+                            material: i.object.material,
+                            transform: self.transform * i.object.transform,
+                            shape: i.object.shape,
+                        },
+                    )
+                })
+                .collect(),
+        }
+    }
+
+    pub fn new(shape: Shape) -> Self {
+        Self::from_simple(SimpleObject::new(shape))
+    }
+
+    pub fn sphere() -> Self {
+        Self::from_simple(SimpleObject::sphere())
+    }
+
+    #[allow(dead_code)]
+    pub fn plane() -> Self {
+        Self::from_simple(SimpleObject::plane())
+    }
+
+    pub fn cube() -> Self {
+        Self::from_simple(SimpleObject::cube())
+    }
+
+    pub fn cylinder() -> Self {
+        Self::from_simple(SimpleObject::cylinder())
+    }
+
+    pub fn cone() -> Self {
+        Self::from_simple(SimpleObject::cone())
+    }
+}
+
+enum ShapeOrGroup {
+    Shape(Shape),
+    Group(Vec<Object>),
+}
+
+impl ShapeOrGroup {}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SimpleObject {
     material: Material,
-    transform: Matrix4,
+    pub transform: Matrix4,
     shape: Shape,
 }
 
@@ -20,6 +161,31 @@ pub enum Shape {
     Cube,
     Cylinder(Cylinder),
     Cone(Cone),
+}
+
+fn compute_transforms(object: Object) -> Vec<SimpleObject> {
+    let mut transform = object.transform;
+
+    match object.shape {
+        ShapeOrGroup::Shape(shape) => vec![SimpleObject {
+            material: object.material,
+            transform,
+            shape,
+        }],
+        ShapeOrGroup::Group(objects) => {
+            let mut res = vec![];
+            for object in objects {
+                let objects2 = compute_transforms(object);
+
+                for mut o2 in objects2.into_iter() {
+                    o2.transform = o2.transform * transform;
+
+                    res.push(o2)
+                }
+            }
+            res
+        }
+    }
 }
 
 impl Shape {
@@ -44,7 +210,7 @@ impl Shape {
     }
 }
 
-impl Object {
+impl SimpleObject {
     pub fn new(shape: Shape) -> Self {
         Self {
             transform: Matrix4::identity(),
@@ -139,14 +305,14 @@ mod tests {
 
     #[test]
     fn the_default_transformation() {
-        let s = Object::new(Shape::Sphere);
+        let s = SimpleObject::new(Shape::Sphere);
 
         assert_eq!(s.transform, Matrix4::identity());
     }
 
     #[test]
     fn assigning_a_transformation() {
-        let mut s = Object::new(Shape::Sphere);
+        let mut s = SimpleObject::new(Shape::Sphere);
         let t = Matrix4::translation(2., 3., 4.);
 
         *s.transform_mut() = t;
@@ -156,14 +322,14 @@ mod tests {
 
     #[test]
     fn the_default_material() {
-        let s = Object::new(Shape::Sphere);
+        let s = SimpleObject::new(Shape::Sphere);
 
         assert_eq!(s.material(), Material::new());
     }
 
     #[test]
     fn may_be_assigned_a_material() {
-        let mut s = Object::new(Shape::Sphere);
+        let mut s = SimpleObject::new(Shape::Sphere);
         let mut m = Material::new();
         m.ambient = 1.;
 
@@ -175,7 +341,7 @@ mod tests {
     // #[test]
     // fn intersecting_a_scaled_shape_with_a_ray() {
     //     let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-    //     let mut s = Object::new(Shape::Sphere);
+    //     let mut s = SimpleObject::new(Shape::Sphere);
     //     s.set_transform(Matrix4::scaling(2., 2., 2.));
 
     //     let xs = s.intersect(r);
@@ -188,7 +354,7 @@ mod tests {
     // #[test]
     // fn intersecting_a_translated_shape_with_a_ray() {
     //     let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-    //     let mut s = Object::new(Shape::Sphere);
+    //     let mut s = SimpleObject::new(Shape::Sphere);
     //     s.set_transform(Matrix4::translation(5., 0., 0.));
 
     //     let xs = s.intersect(r);
@@ -200,7 +366,7 @@ mod tests {
 
     #[test]
     fn computing_the_normal_on_a_translated_shape() {
-        let mut s = Object::new(Shape::Sphere);
+        let mut s = SimpleObject::new(Shape::Sphere);
 
         *s.transform_mut() = Matrix4::translation(0., 1., 0.);
 
@@ -210,7 +376,7 @@ mod tests {
 
     #[test]
     fn computing_the_normal_on_a_transformed_shape() {
-        let mut s = Object::new(Shape::Sphere);
+        let mut s = SimpleObject::new(Shape::Sphere);
         let m = Matrix4::scaling(1., 0.5, 1.) * Matrix4::rotation_z(PI / 5.);
 
         *s.transform_mut() = m;
@@ -221,7 +387,7 @@ mod tests {
 
     #[test]
     fn a_helper_for_producing_a_sphere_with_a_glassy_material() {
-        let s = Object::glass_sphere();
+        let s = SimpleObject::glass_sphere();
 
         assert_eq!(s.transform, Matrix4::identity());
         assert_eq!(s.material.transparency, 1.0);
