@@ -210,18 +210,6 @@ impl SimpleObject {
         &mut self.material
     }
 
-    /// The maths assume the sphere is located in the origin,
-    /// and it handles the general case by "unmoving" the ray with the opposite transform.
-    pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
-        let local_ray = ray.transform(self.transform().inverse().unwrap());
-
-        self.shape
-            .local_intersect(local_ray)
-            .into_iter()
-            .map(|t| Intersection::new(t, *self))
-            .collect()
-    }
-
     pub fn normal_at(&self, world_point: Tuple) -> Tuple {
         let inverse_transform = self.transform().inverse().unwrap();
         let local_point = inverse_transform * world_point;

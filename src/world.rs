@@ -33,25 +33,6 @@ impl World {
         self.objects.push(Object::from_simple(object))
     }
 
-    pub fn get_object(&self, index: usize) -> Option<SimpleObject> {
-        match self.objects.get(index) {
-            Some(Object {
-                transform,
-                shape: ShapeOrGroup::Shape { shape, material },
-            }) => Some(SimpleObject {
-                material: *material,
-                transform: *transform,
-                shape: *shape,
-            }),
-            Some(Object {
-                shape: ShapeOrGroup::Group(_),
-                ..
-            }) => None,
-
-            None => None,
-        }
-    }
-
     pub fn color_at(&self, ray: Ray) -> Color {
         self.color_at_with_depth(ray, DEFAULT_ALLOWED_DEPTH)
     }
@@ -197,6 +178,25 @@ mod tests {
             ));
 
             world
+        }
+
+        pub fn get_object(&self, index: usize) -> Option<SimpleObject> {
+            match self.objects.get(index) {
+                Some(Object {
+                    transform,
+                    shape: ShapeOrGroup::Shape { shape, material },
+                }) => Some(SimpleObject {
+                    material: *material,
+                    transform: *transform,
+                    shape: *shape,
+                }),
+                Some(Object {
+                    shape: ShapeOrGroup::Group(_),
+                    ..
+                }) => None,
+
+                None => None,
+            }
         }
     }
 
