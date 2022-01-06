@@ -26,16 +26,6 @@ impl Canvas {
         }
     }
 
-    /// TODO: We should not panic here, but let's see what the book does first.
-    #[allow(dead_code)]
-    pub fn pixel_at(&self, x: i32, y: i32) -> Color {
-        if let Some(index) = self.get_index(x, y) {
-            self.pixels[index]
-        } else {
-            panic!("trying to get a pixel outside bounds")
-        }
-    }
-
     fn get_index(&self, x: i32, y: i32) -> Option<usize> {
         let in_bounds = 0 <= x && x < self.width as i32 && 0 <= y && y < self.height as i32;
 
@@ -104,6 +94,16 @@ fn format_scaled_color(color_component: f64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    impl Canvas {
+        fn pixel_at(&self, x: i32, y: i32) -> Color {
+            if let Some(index) = self.get_index(x, y) {
+                self.pixels[index]
+            } else {
+                panic!("trying to get a pixel outside bounds")
+            }
+        }
+    }
 
     #[test]
     fn creating_a_canvas() {

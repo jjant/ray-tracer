@@ -32,10 +32,12 @@ impl Pattern {
         Self::new(PatternType::Striped(StripePattern::new(a, b)))
     }
 
+    #[allow(dead_code)]
     pub fn gradient(a: Color, b: Color) -> Self {
         Self::new(PatternType::Gradient(GradientPattern::new(a, b)))
     }
 
+    #[allow(dead_code)]
     pub fn ring(a: Color, b: Color) -> Self {
         Self::new(PatternType::Ring(RingPattern::new(a, b)))
     }

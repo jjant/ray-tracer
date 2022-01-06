@@ -120,7 +120,6 @@ impl Matrix4 {
         ])
     }
 
-    #[allow(dead_code)]
     pub fn scaling(x: f64, y: f64, z: f64) -> Self {
         Self::from_rows([
             [x, 0., 0., 0.],
@@ -130,7 +129,6 @@ impl Matrix4 {
         ])
     }
 
-    #[allow(dead_code)]
     pub fn rotation_x(angle_radians: f64) -> Self {
         let r = angle_radians;
         Self::from_rows([
@@ -141,7 +139,6 @@ impl Matrix4 {
         ])
     }
 
-    #[allow(dead_code)]
     pub fn rotation_y(angle_radians: f64) -> Self {
         let r = angle_radians;
         Self::from_rows([
@@ -152,7 +149,6 @@ impl Matrix4 {
         ])
     }
 
-    #[allow(dead_code)]
     pub fn rotation_z(angle_radians: f64) -> Self {
         let r = angle_radians;
 

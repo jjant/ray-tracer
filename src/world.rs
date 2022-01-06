@@ -3,7 +3,7 @@ use crate::intersection::{ComputedIntersection, Intersection};
 use crate::light::Light;
 use crate::material;
 use crate::ray::Ray;
-use crate::shape::{Object, ShapeOrGroup, SimpleObject};
+use crate::shape::{Object, SimpleObject};
 use crate::tuple::Tuple;
 
 const DEFAULT_ALLOWED_DEPTH: i32 = 8;
@@ -145,10 +145,6 @@ impl World {
             color
         }
     }
-
-    pub fn is_empty(&self) -> bool {
-        self.objects.is_empty()
-    }
 }
 
 #[cfg(test)]
@@ -158,9 +154,10 @@ mod tests {
     use crate::matrix4::Matrix4;
     use crate::misc::approx_equal;
     use crate::pattern::Pattern;
+    use crate::shape::ShapeOrGroup;
 
     impl World {
-        pub fn default() -> Self {
+        fn default() -> Self {
             let mut s1 = SimpleObject::sphere();
             s1.material_mut().color = Color::new(0.8, 1.0, 0.6);
             s1.material_mut().diffuse = 0.7;
@@ -180,7 +177,7 @@ mod tests {
             world
         }
 
-        pub fn get_object(&self, index: usize) -> Option<SimpleObject> {
+        fn get_object(&self, index: usize) -> Option<SimpleObject> {
             match self.objects.get(index) {
                 Some(Object {
                     transform,
@@ -197,6 +194,10 @@ mod tests {
 
                 None => None,
             }
+        }
+
+        fn is_empty(&self) -> bool {
+            self.objects.is_empty()
         }
     }
 

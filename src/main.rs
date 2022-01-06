@@ -21,9 +21,6 @@ mod sphere;
 mod transformations;
 mod tuple;
 mod world;
-
-use color::Color;
-#[allow(unused_imports)]
 use examples::{chapter_11, chapter_12, chapter_13, chapter_14};
 use std::fs::File;
 use std::io::Write;

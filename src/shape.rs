@@ -103,14 +103,17 @@ impl Object {
         Self::from_simple(SimpleObject::plane())
     }
 
+    #[allow(dead_code)]
     pub fn cube() -> Self {
         Self::from_simple(SimpleObject::cube())
     }
 
+    #[allow(dead_code)]
     pub fn cylinder() -> Self {
         Self::from_simple(SimpleObject::cylinder())
     }
 
+    #[allow(dead_code)]
     pub fn cone() -> Self {
         Self::from_simple(SimpleObject::cone())
     }
