@@ -24,7 +24,7 @@ mod world;
 
 use color::Color;
 #[allow(unused_imports)]
-use examples::{chapter_11, chapter_12, chapter_13};
+use examples::{chapter_11, chapter_12, chapter_13, chapter_14};
 use light::Light;
 use matrix4::Matrix4;
 use std::f64::consts::PI;
@@ -117,7 +117,7 @@ const HEIGHT: usize = 190;
 
 fn main() {
     println!("HEY");
-    let (camera, world) = test_scene2(WIDTH, HEIGHT);
+    let (camera, world) = chapter_14::scene(WIDTH, HEIGHT);
     println!("HEY2");
     let ppm = camera.render(&world).to_ppm();
 
