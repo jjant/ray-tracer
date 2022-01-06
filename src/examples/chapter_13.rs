@@ -15,7 +15,7 @@ use crate::{
 pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut w = World::new();
 
-    w.light = Some(Light::point_light(
+    w.add_light(Light::point_light(
         Tuple::point(1., 6.9, -4.9),
         Color::new(1., 1., 1.),
     ));

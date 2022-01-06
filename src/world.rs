@@ -10,15 +10,19 @@ const DEFAULT_ALLOWED_DEPTH: i32 = 8;
 
 pub struct World {
     pub objects: Vec<Object>,
-    pub light: Option<Light>,
+    lights: Vec<Light>,
 }
 
 impl World {
     pub fn new() -> Self {
         Self {
             objects: vec![],
-            light: None,
+            lights: vec![],
         }
+    }
+
+    pub fn add_light(&mut self, light: Light) {
+        self.lights.push(light)
     }
 
     pub fn add_group(&mut self, object: Object) {
@@ -77,18 +81,23 @@ impl World {
     }
 
     fn shade_hit(&self, comps: ComputedIntersection, remaining_depth: i32) -> Color {
-        let surface_color = material::lighting(
-            comps.object.material(),
-            comps.object,
-            self.light
-                .expect("Expected light to be present in shade_hit"),
-            // Use comps.over_point instead of comps.point remove acne from floor with checkered pattern.
-            // See https://forum.raytracerchallenge.com/thread/204/avoid-noise-checkers-pattern-planes
-            comps.over_point,
-            comps.eye_vector,
-            comps.normal_vector,
-            self.is_shadowed(comps.over_point),
-        );
+        let surface_color = self
+            .lights
+            .iter()
+            .map(|light| {
+                material::lighting(
+                    comps.object.material(),
+                    comps.object,
+                    *light,
+                    // Use comps.over_point instead of comps.point remove acne from floor with checkered pattern.
+                    // See https://forum.raytracerchallenge.com/thread/204/avoid-noise-checkers-pattern-planes
+                    comps.over_point,
+                    comps.eye_vector,
+                    comps.normal_vector,
+                    self.is_shadowed(comps.over_point, *light),
+                )
+            })
+            .fold(Color::black(), |c1, c2| c1 + c2);
 
         let reflected_color = self.reflected_color(comps, remaining_depth);
         let refracted_color = self.refracted_color(comps, remaining_depth);
@@ -104,20 +113,16 @@ impl World {
         }
     }
 
-    fn is_shadowed(&self, point: Tuple) -> bool {
-        if let Some(light) = self.light {
-            let vector = light.position - point;
-            let distance = vector.magnitude();
+    fn is_shadowed(&self, point: Tuple, light: Light) -> bool {
+        let vector = light.position - point;
+        let distance = vector.magnitude();
 
-            let ray = Ray::new(point, vector.normalize());
+        let ray = Ray::new(point, vector.normalize());
 
-            Intersection::hit(&self.intersect(ray))
-                // Check to see if hit object is closer than the light.
-                .map(|hit| hit.t < distance)
-                .unwrap_or(false)
-        } else {
-            true
-        }
+        Intersection::hit(&self.intersect(ray))
+            // Check to see if hit object is closer than the light.
+            .map(|hit| hit.t < distance)
+            .unwrap_or(false)
     }
 
     fn reflected_color(&self, comps: ComputedIntersection, remaining_depth: i32) -> Color {
@@ -187,7 +192,7 @@ mod tests {
             let mut world = Self::new();
             world.add_object(s1);
             world.add_object(s2);
-            world.light = Some(Light::point_light(
+            world.add_light(Light::point_light(
                 Tuple::point(-10., 10., -10.),
                 Color::white(),
             ));
@@ -201,7 +206,7 @@ mod tests {
         let w = World::new();
 
         assert!(w.is_empty());
-        assert!(w.light.is_none());
+        assert!(w.lights.is_empty());
     }
 
     #[test]
@@ -217,7 +222,7 @@ mod tests {
 
         let w = World::default();
 
-        assert_eq!(w.light, Some(light));
+        assert_eq!(w.lights, vec![light]);
         assert!(w.get_object(0).unwrap() == s1);
         assert!(w.get_object(1).unwrap() == s2);
         // TODO: See if there's a good way of implementing this.
@@ -253,10 +258,7 @@ mod tests {
     #[test]
     fn shading_an_intersection_from_the_inside() {
         let mut w = World::default();
-        w.light = Some(Light::point_light(
-            Tuple::point(0., 0.25, 0.),
-            Color::white(),
-        ));
+        w.lights[0] = Light::point_light(Tuple::point(0., 0.25, 0.), Color::white());
 
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
         let shape = w.get_object(1).unwrap();
@@ -305,34 +307,34 @@ mod tests {
     fn there_is_no_shadow_when_nothing_is_collinear_with_point_and_light() {
         let w = World::default();
         let p = Tuple::point(0., 10., 0.);
-        assert!(!w.is_shadowed(p));
+        assert!(!w.is_shadowed(p, w.lights[0]));
     }
 
     #[test]
     fn the_shadow_when_an_object_is_between_the_point_and_the_light() {
         let w = World::default();
         let p = Tuple::point(10., -10., 10.);
-        assert!(w.is_shadowed(p));
+        assert!(w.is_shadowed(p, w.lights[0]));
     }
 
     #[test]
     fn there_is_no_shadow_when_an_object_is_behind_the_light() {
         let w = World::default();
         let p = Tuple::point(-20., 20., -20.);
-        assert!(!w.is_shadowed(p));
+        assert!(!w.is_shadowed(p, w.lights[0]));
     }
 
     #[test]
     fn there_is_no_shadow_when_an_object_is_behind_the_point() {
         let w = World::default();
         let p = Tuple::point(-2., 2., -2.);
-        assert!(!w.is_shadowed(p));
+        assert!(!w.is_shadowed(p, w.lights[0]));
     }
 
     #[test]
     fn shade_hit_is_given_an_intersection_in_shadow() {
         let mut w = World::new();
-        w.light = Some(Light::point_light(
+        w.add_light(Light::point_light(
             Tuple::point(0., 0., -10.),
             Color::new(1., 1., 1.),
         ));
@@ -406,7 +408,7 @@ mod tests {
     #[test]
     fn color_at_with_mutually_reflective_surfaces() {
         let mut w = World::new();
-        w.light = Some(Light::point_light(
+        w.add_light(Light::point_light(
             Tuple::point(0., 0., 0.),
             Color::new(1., 1., 1.),
         ));

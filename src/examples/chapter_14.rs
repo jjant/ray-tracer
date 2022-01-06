@@ -139,23 +139,22 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
         Tuple::point(10000., 10000., -10000.),
         Color::new(0.25, 0.25, 0.25),
     );
-    // world.add_light(light1);
+    world.add_light(light1);
     let light2 = Light::point_light(
         Tuple::point(-10000., 10000., -10000.),
         Color::new(0.25, 0.25, 0.25),
     );
-    // world.add_light(light2);
+    world.add_light(light2);
     let light3 = Light::point_light(
         Tuple::point(10000., -10000., -10000.),
         Color::new(0.25, 0.25, 0.25),
     );
-    // world.add_light(light3);
+    world.add_light(light3);
     let light4 = Light::point_light(
         Tuple::point(-10000., -10000., -10000.),
         Color::new(0.25, 0.25, 0.25),
     );
-    // world.add_light(light4);
-    world.light = Some(light1);
+    world.add_light(light4);
 
     /* ----------------------------- */
 

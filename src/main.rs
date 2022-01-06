@@ -77,7 +77,7 @@ fn test_scene() -> (Camera, World) {
     world.add_object(examples::back_wall());
     world.add_object(examples::right_wall());
 
-    world.light = Some(Light::point_light(
+    world.add_light(Light::point_light(
         Tuple::point(-10., 10., -10.),
         Color::white(),
     ));
@@ -95,10 +95,8 @@ fn test_scene() -> (Camera, World) {
 fn test_scene2(width: usize, height: usize) -> (Camera, World) {
     let mut world = World::new();
 
-    println!("before add");
     world.add_group(shape::hexagon());
-    println!("after add");
-    world.light = Some(Light::point_light(
+    world.add_light(Light::point_light(
         Tuple::point(-10., 10., -10.),
         Color::white(),
     ));
@@ -116,9 +114,7 @@ const WIDTH: usize = 320;
 const HEIGHT: usize = 190;
 
 fn main() {
-    println!("HEY");
     let (camera, world) = chapter_14::scene(WIDTH, HEIGHT);
-    println!("HEY2");
     let ppm = camera.render(&world).to_ppm();
 
     let mut f = File::create("./output.ppm").expect("Unable to create file");

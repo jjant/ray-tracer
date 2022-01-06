@@ -121,7 +121,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     green_glass_ball.material_mut().refractive_index = 1.5;
     world.add_object(green_glass_ball);
 
-    world.light = Some(Light::point_light(
+    world.add_light(Light::point_light(
         Tuple::point(-4.9, 4.9, -1.),
         Color::white(),
     ));
