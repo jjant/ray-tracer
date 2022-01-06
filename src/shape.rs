@@ -46,7 +46,7 @@ pub fn hexagon() -> Object {
 pub struct Object {
     pub material: Material,
     pub transform: Matrix4,
-    shape: ShapeOrGroup,
+    pub shape: ShapeOrGroup,
 }
 
 impl Object {
@@ -140,18 +140,16 @@ impl Object {
     }
 }
 
-enum ShapeOrGroup {
+pub enum ShapeOrGroup {
     Shape(Shape),
     Group(Vec<Object>),
 }
 
-impl ShapeOrGroup {}
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SimpleObject {
-    material: Material,
+    pub material: Material,
     pub transform: Matrix4,
-    shape: Shape,
+    pub shape: Shape,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

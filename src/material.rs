@@ -2,7 +2,7 @@ use crate::color::Color;
 use crate::light::Light;
 use crate::misc::approx_equal;
 use crate::pattern::Pattern;
-use crate::shape::{Object, SimpleObject};
+use crate::shape::SimpleObject;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
@@ -128,7 +128,7 @@ mod tests {
     #[test]
     fn lighting_with_the_eye_between_the_light_and_the_surface() {
         let m = Material::new();
-        let o = Object::sphere();
+        let o = SimpleObject::sphere();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., 0., -1.);
         let normal_vector = Tuple::vector(0., 0., -1.);
@@ -140,7 +140,7 @@ mod tests {
     #[test]
     fn lighting_with_the_eye_between_light_and_surface_eye_offset_45_degrees() {
         let m = Material::new();
-        let o = Object::sphere();
+        let o = SimpleObject::sphere();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.);
         let normal_vector = Tuple::vector(0., 0., -1.);
@@ -152,7 +152,7 @@ mod tests {
     #[test]
     fn lighting_with_eye_opposite_surface_light_offset_45_degrees() {
         let m = Material::new();
-        let o = Object::sphere();
+        let o = SimpleObject::sphere();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., 0., -1.);
         let normal_vector = Tuple::vector(0., 0., -1.);
@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn lighting_with_eye_in_the_path_of_the_reflection_vector() {
         let m = Material::new();
-        let o = Object::sphere();
+        let o = SimpleObject::sphere();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., -2_f64.sqrt() / 2., -2_f64.sqrt() / 2.);
         let normal_vector = Tuple::vector(0., 0., -1.);
@@ -176,7 +176,7 @@ mod tests {
     #[test]
     fn lighting_with_the_light_behind_the_surface() {
         let m = Material::new();
-        let o = Object::sphere();
+        let o = SimpleObject::sphere();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., 0., -1.);
         let normal_vector = Tuple::vector(0., 0., -1.);
@@ -188,7 +188,7 @@ mod tests {
     #[test]
     fn lighting_with_the_surface_in_shadow() {
         let m = Material::new();
-        let o = Object::sphere();
+        let o = SimpleObject::sphere();
         let eye_vector = Tuple::vector(0., 0., -1.);
         let position = Tuple::point(0., 0., 0.);
         let normal_vector = Tuple::vector(0., 0., -1.);
