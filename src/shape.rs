@@ -1,5 +1,3 @@
-use std::f64::consts::PI;
-
 use crate::cone::Cone;
 use crate::cylinder::Cylinder;
 use crate::plane::Plane;
@@ -8,43 +6,7 @@ use crate::{
     sphere::Sphere, tuple::Tuple,
 };
 
-fn hexagon_corner() -> Object {
-    let mut corner = Object::sphere();
-    corner.transform = Matrix4::translation(0., 0., -1.) * Matrix4::scaling(0.25, 0.25, 0.25);
-
-    corner
-}
-
-fn hexagon_edge() -> Object {
-    let mut edge = Cylinder::new();
-    edge.minimum = 0.;
-    edge.maximum = 1.;
-
-    let mut edge = Object::new(Shape::Cylinder(edge));
-    edge.transform = Matrix4::translation(0., 0., -1.)
-        * Matrix4::rotation_y(-PI / 6.)
-        * Matrix4::rotation_z(-PI / 2.)
-        * Matrix4::scaling(0.25, 1., 0.25);
-    edge
-}
-
-fn hexagon_side() -> Object {
-    Object::group(vec![hexagon_corner(), hexagon_edge()])
-}
-
-pub fn hexagon() -> Object {
-    let mut hex = vec![];
-
-    for n in 0..=5 {
-        let mut side = hexagon_side();
-        side.transform = Matrix4::rotation_y(n as f64 * PI / 3.);
-        hex.push(side)
-    }
-
-    Object::group(hex)
-}
 pub struct Object {
-    pub material: Material,
     pub transform: Matrix4,
     pub shape: ShapeOrGroup,
 }
@@ -52,7 +14,6 @@ pub struct Object {
 impl Object {
     pub fn group(objects: Vec<Object>) -> Self {
         Object {
-            material: Material::new(),
             transform: Matrix4::identity(),
             shape: ShapeOrGroup::Group(objects),
         }
@@ -66,9 +27,24 @@ impl Object {
         } = simple;
 
         Self {
-            material,
             transform,
-            shape: ShapeOrGroup::Shape(shape),
+            shape: ShapeOrGroup::Shape { shape, material },
+        }
+    }
+
+    pub fn set_material(&mut self, material: Material) {
+        match self.shape {
+            ShapeOrGroup::Shape {
+                material: ref mut mat,
+                ..
+            } => {
+                *mat = material;
+            }
+            ShapeOrGroup::Group(ref mut group) => {
+                for object in group.iter_mut() {
+                    object.set_material(material);
+                }
+            }
         }
     }
 
@@ -82,14 +58,14 @@ impl Object {
 
     fn local_intersect(&self, ray: Ray) -> Vec<Intersection> {
         match &self.shape {
-            ShapeOrGroup::Shape(shape) => shape
+            ShapeOrGroup::Shape { shape, material } => shape
                 .local_intersect(ray)
                 .into_iter()
                 .map(|t| {
                     Intersection::new(
                         t,
                         SimpleObject {
-                            material: self.material,
+                            material: *material,
                             transform: self.transform,
                             shape: *shape,
                         },
@@ -141,7 +117,7 @@ impl Object {
 }
 
 pub enum ShapeOrGroup {
-    Shape(Shape),
+    Shape { material: Material, shape: Shape },
     Group(Vec<Object>),
 }
 
@@ -159,31 +135,6 @@ pub enum Shape {
     Cube,
     Cylinder(Cylinder),
     Cone(Cone),
-}
-
-fn compute_transforms(object: Object) -> Vec<SimpleObject> {
-    let mut transform = object.transform;
-
-    match object.shape {
-        ShapeOrGroup::Shape(shape) => vec![SimpleObject {
-            material: object.material,
-            transform,
-            shape,
-        }],
-        ShapeOrGroup::Group(objects) => {
-            let mut res = vec![];
-            for object in objects {
-                let objects2 = compute_transforms(object);
-
-                for mut o2 in objects2.into_iter() {
-                    o2.transform = o2.transform * transform;
-
-                    res.push(o2)
-                }
-            }
-            res
-        }
-    }
 }
 
 impl Shape {

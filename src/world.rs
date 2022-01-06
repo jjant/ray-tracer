@@ -36,9 +36,8 @@ impl World {
     pub fn get_object(&self, index: usize) -> Option<SimpleObject> {
         match self.objects.get(index) {
             Some(Object {
-                material,
                 transform,
-                shape: ShapeOrGroup::Shape(shape),
+                shape: ShapeOrGroup::Shape { shape, material },
             }) => Some(SimpleObject {
                 material: *material,
                 transform: *transform,
@@ -292,11 +291,15 @@ mod tests {
         // TODO: See if we can refactor this
         let mut w = World::default();
         let outer = &mut w.objects[0];
-        outer.material.ambient = 1.;
+        let mut material = Material::new();
+        material.ambient = 1.;
+        outer.set_material(material);
         let inner = &mut w.objects[1];
-        inner.material.ambient = 1.;
+        let mut material = Material::new();
+        material.ambient = 1.;
+        inner.set_material(material);
 
-        let inner = &w.objects[1];
+        let inner = w.get_object(1).unwrap();
         let r = Ray::new(Tuple::point(0., 0., 0.75), Tuple::vector(0., 0., -1.));
         let c = w.color_at(r);
 
@@ -358,7 +361,9 @@ mod tests {
         let mut w = World::default();
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
         let shape = &mut w.objects[0];
-        shape.material.ambient = 1.;
+        let mut material = Material::new();
+        material.ambient = 1.;
+        shape.set_material(material);
         let shape = w.get_object(0).unwrap();
 
         let i = Intersection::new(1., shape);
@@ -463,8 +468,10 @@ mod tests {
     fn the_refracted_color_at_the_maximum_recursive_depth() {
         let mut w = World::default();
         let shape = &mut w.objects[0];
-        shape.material.transparency = 1.0;
-        shape.material.refractive_index = 1.5;
+        let mut material = Material::new();
+        material.transparency = 1.0;
+        material.refractive_index = 1.5;
+        shape.set_material(material);
         let shape = w.get_object(0).unwrap();
 
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
@@ -479,8 +486,10 @@ mod tests {
     fn the_refracted_color_under_total_internal_reflection() {
         let mut w = World::default();
         let shape = &mut w.objects[0];
-        shape.material.transparency = 1.0;
-        shape.material.refractive_index = 1.5;
+        let mut material = Material::new();
+        material.transparency = 1.0;
+        material.refractive_index = 1.5;
+        shape.set_material(material);
         let shape = w.get_object(0).unwrap();
 
         let r = Ray::new(
@@ -504,12 +513,17 @@ mod tests {
     #[test]
     fn the_refracted_color_with_a_refracted_ray() {
         let mut w = World::default();
+
         let a = &mut w.objects[0];
-        a.material = Material::with_pattern(Pattern::test());
-        a.material.ambient = 1.0;
+        let mut material = Material::with_pattern(Pattern::test());
+        material.ambient = 1.0;
+        a.set_material(material);
+
         let b = &mut w.objects[1];
-        b.material.transparency = 1.0;
-        b.material.refractive_index = 1.5;
+        let mut material = Material::new();
+        material.transparency = 1.0;
+        material.refractive_index = 1.5;
+        b.set_material(material);
 
         let a = w.get_object(0).unwrap();
         let b = w.get_object(1).unwrap();

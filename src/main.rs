@@ -95,7 +95,7 @@ fn test_scene() -> (Camera, World) {
 fn test_scene2(width: usize, height: usize) -> (Camera, World) {
     let mut world = World::new();
 
-    world.add_group(shape::hexagon());
+    // world.add_group(shape::hexagon());
     world.add_light(Light::point_light(
         Tuple::point(-10., 10., -10.),
         Color::white(),
@@ -114,6 +114,9 @@ const WIDTH: usize = 320;
 const HEIGHT: usize = 190;
 
 fn main() {
+    let (_camera, _world) = chapter_11::scene(WIDTH, HEIGHT);
+    let (_camera, _world) = chapter_12::scene(WIDTH, HEIGHT);
+    let (_camera, _world) = chapter_13::scene(WIDTH, HEIGHT);
     let (camera, world) = chapter_14::scene(WIDTH, HEIGHT);
     let ppm = camera.render(&world).to_ppm();
 

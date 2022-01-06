@@ -4,12 +4,14 @@ use crate::{
     cone::Cone,
     cylinder::Cylinder,
     light::Light,
+    material::Material,
     matrix4::Matrix4,
-    shape::{Object, Shape},
+    shape::{Object, Shape, SimpleObject},
     transformations,
     tuple::Tuple,
     world::World,
 };
+// use std::f64::consts::PI;
 
 /// Scene by Manoël Trapier
 /// https://github.com/Godzil/DoRayMe/blob/45f5f8098e50ce746d4d4d130cffea1b9f98174f/tests/ch14_test.cpp
@@ -159,43 +161,49 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     /* ----------------------------- */
 
     /* White background */
-    let mut p = Object::plane();
+    let mut p = SimpleObject::plane();
     p.transform = Matrix4::translation(0., 0., 100.) * Matrix4::rotation_x(1.5708);
     p.material.color = Color::white();
     p.material.ambient = 1.;
     p.material.diffuse = 0.;
     p.material.specular = 0.;
-    world.add_group(p);
+    world.add_object(p);
 
     let mut wacky_object = wacky();
     wacky_object.transform = Matrix4::translation(-2.8, 0., 0.)
         * Matrix4::rotation_x(0.4363)
         * Matrix4::rotation_y(0.1745);
-    wacky_object.material.color = Color::new(0.9, 0.2, 0.4);
-    wacky_object.material.ambient = 0.2;
-    wacky_object.material.diffuse = 0.8;
-    wacky_object.material.specular = 0.7;
-    wacky_object.material.shininess = 20.;
+    let mut material = Material::new();
+    material.color = Color::new(0.9, 0.2, 0.4);
+    material.ambient = 0.2;
+    material.diffuse = 0.8;
+    material.specular = 0.7;
+    material.shininess = 20.;
+    wacky_object.set_material(material);
     world.add_group(wacky_object);
 
     let mut wacky_object = wacky();
     wacky_object.transform = Matrix4::rotation_y(0.1745);
-    wacky_object.material.color = Color::new(0.2, 0.9, 0.6);
-    wacky_object.material.ambient = 0.2;
-    wacky_object.material.diffuse = 0.8;
-    wacky_object.material.specular = 0.7;
-    wacky_object.material.shininess = 20.;
+    let mut material = Material::new();
+    material.color = Color::new(0.2, 0.9, 0.6);
+    material.ambient = 0.2;
+    material.diffuse = 0.8;
+    material.specular = 0.7;
+    material.shininess = 20.;
+    wacky_object.set_material(material);
     world.add_group(wacky_object);
 
     let mut wacky_object = wacky();
     wacky_object.transform = Matrix4::translation(2.8, 0., 0.)
         * Matrix4::rotation_x(-0.4363)
         * Matrix4::rotation_y(-0.1745);
-    wacky_object.material.color = Color::new(0.2, 0.3, 1.0);
-    wacky_object.material.ambient = 0.2;
-    wacky_object.material.diffuse = 0.8;
-    wacky_object.material.specular = 0.7;
-    wacky_object.material.shininess = 20.;
+    let mut material = Material::new();
+    material.color = Color::new(0.2, 0.3, 1.0);
+    material.ambient = 0.2;
+    material.diffuse = 0.8;
+    material.specular = 0.7;
+    material.shininess = 20.;
+    wacky_object.set_material(material);
     world.add_group(wacky_object);
 
     /* ----------------------------- */
@@ -209,3 +217,39 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
 
     (camera, world)
 }
+
+// fn hexagon_corner() -> Object {
+//     let mut corner = Object::sphere();
+//     corner.transform = Matrix4::translation(0., 0., -1.) * Matrix4::scaling(0.25, 0.25, 0.25);
+
+//     corner
+// }
+
+// fn hexagon_edge() -> Object {
+//     let mut edge = Cylinder::new();
+//     edge.minimum = 0.;
+//     edge.maximum = 1.;
+
+//     let mut edge = Object::new(Shape::Cylinder(edge));
+//     edge.transform = Matrix4::translation(0., 0., -1.)
+//         * Matrix4::rotation_y(-PI / 6.)
+//         * Matrix4::rotation_z(-PI / 2.)
+//         * Matrix4::scaling(0.25, 1., 0.25);
+//     edge
+// }
+
+// fn hexagon_side() -> Object {
+//     Object::group(vec![hexagon_corner(), hexagon_edge()])
+// }
+
+// pub fn hexagon() -> Object {
+//     let mut hex = vec![];
+
+//     for n in 0..=5 {
+//         let mut side = hexagon_side();
+//         side.transform = Matrix4::rotation_y(n as f64 * PI / 3.);
+//         hex.push(side)
+//     }
+
+//     Object::group(hex)
+// }
