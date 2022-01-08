@@ -157,7 +157,7 @@ mod tests {
     use crate::shape::ShapeOrGroup;
 
     impl World {
-        fn default() -> Self {
+        pub fn default() -> Self {
             let mut s1 = SimpleObject::sphere();
             s1.material_mut().color = Color::new(0.8, 1.0, 0.6);
             s1.material_mut().diffuse = 0.7;

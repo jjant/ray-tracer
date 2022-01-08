@@ -2,6 +2,7 @@ use crate::color::Color;
 use crate::cone::Cone;
 use crate::cube;
 use crate::cylinder::Cylinder;
+use crate::misc::EPSILON;
 use crate::plane::Plane;
 use crate::{
     cube::Cube, intersection::Intersection, material::Material, matrix4::Matrix4, ray::Ray,
@@ -261,8 +262,8 @@ impl Shape {
     fn bounding_box(&self) -> BoundingBox {
         match self {
             Shape::Sphere => BoundingBox {
-                min: Tuple::point(-1., -1., -1.),
-                max: Tuple::point(1., 1., 1.),
+                min: Tuple::point(-(1. + EPSILON), -(1. + EPSILON), -(1. + EPSILON)),
+                max: Tuple::point(1. + EPSILON, 1. + EPSILON, 1. + EPSILON),
             },
             Shape::Cube => BoundingBox {
                 min: Tuple::point(-1., -1., -1.),
@@ -397,6 +398,20 @@ mod tests {
     use std::f64::consts::PI;
 
     use super::*;
+
+    impl SimpleObject {
+        /// The maths assume the sphere is located in the origin,
+        /// and it handles the general case by "unmoving" the ray with the opposite transform.
+        pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
+            let local_ray = ray.transform(self.transform().inverse().unwrap());
+
+            self.shape
+                .local_intersect(local_ray)
+                .into_iter()
+                .map(|t| Intersection::new(t, *self))
+                .collect()
+        }
+    }
 
     #[test]
     fn the_default_transformation() {

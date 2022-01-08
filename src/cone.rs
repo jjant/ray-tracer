@@ -135,7 +135,7 @@ mod tests {
             ),
         ];
 
-        let mut cone = Cone::new();
+        let cone = Cone::new();
 
         for (point, direction, t0, t1) in examples {
             let direction = direction.normalize();

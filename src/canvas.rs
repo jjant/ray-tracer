@@ -96,7 +96,7 @@ mod tests {
     use super::*;
 
     impl Canvas {
-        fn pixel_at(&self, x: i32, y: i32) -> Color {
+        pub fn pixel_at(&self, x: i32, y: i32) -> Color {
             if let Some(index) = self.get_index(x, y) {
                 self.pixels[index]
             } else {
