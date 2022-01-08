@@ -25,8 +25,10 @@ use examples::{chapter_11, chapter_12, chapter_13, chapter_14};
 use std::fs::File;
 use std::io::Write;
 
+const ASPECT: f64 = 16. / 9.;
+
 const WIDTH: usize = 320;
-const HEIGHT: usize = 190;
+const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
 fn main() {
     let (_camera, _world) = chapter_11::scene(WIDTH, HEIGHT);

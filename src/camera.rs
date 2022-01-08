@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use crate::{canvas::Canvas, matrix4::Matrix4, ray::Ray, tuple::Tuple, world::World};
 
 #[derive(Clone, Copy)]
@@ -69,11 +71,12 @@ impl Camera {
                 canvas.write_pixel(x, y, color);
             }
             total_done += self.hsize;
-            println!(
-                "Computed: {}({}%) pixels.",
+            print!(
+                "Computed: {}({}%) pixels.\r",
                 total_done,
                 (100. * (total_done as f64 / total_pixels as f64)).round()
             );
+            std::io::stdout().flush().unwrap();
         }
 
         canvas

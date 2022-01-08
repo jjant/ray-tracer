@@ -1,4 +1,6 @@
+use crate::color::Color;
 use crate::cone::Cone;
+use crate::cube;
 use crate::cylinder::Cylinder;
 use crate::plane::Plane;
 use crate::{
@@ -6,12 +8,28 @@ use crate::{
     sphere::Sphere, tuple::Tuple,
 };
 
+#[derive(Debug)]
 pub struct Object {
     pub transform: Matrix4,
     pub shape: ShapeOrGroup,
 }
 
 impl Object {
+    pub fn bounding_box(&self) -> BoundingBox {
+        let inner_bb = match self.shape {
+            ShapeOrGroup::Shape { shape, .. } => shape.bounding_box(),
+            ShapeOrGroup::Group(ref group) => group
+                .iter()
+                .map(|object| object.bounding_box())
+                .reduce(|box1, box2| BoundingBox::union(&box1, &box2))
+                .unwrap(),
+        };
+
+        let new_points = inner_bb.points().map(|point| self.transform * point);
+
+        BoundingBox::from_points(&new_points)
+    }
+
     pub fn group(objects: Vec<Object>) -> Self {
         Object {
             transform: Matrix4::identity(),
@@ -51,15 +69,24 @@ impl Object {
     /// The maths assume the sphere is located in the origin,
     /// and it handles the general case by "unmoving" the ray with the opposite transform.
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
-        let local_ray = ray.transform(self.transform.inverse().unwrap());
+        let bb = self.bounding_box();
+        // This is a bit different from the book, it looks like?
+        // They seem to do the AABB check in the local intersect function
+        // But that doesn't seem to make sense because we compute the bounding box in world space.
+        let intersects_box = bb.intersect(ray);
 
-        self.local_intersect(local_ray)
+        if intersects_box {
+            let local_ray = ray.transform(self.transform.inverse().unwrap());
+            self.local_intersect(local_ray)
+        } else {
+            vec![]
+        }
     }
 
-    fn local_intersect(&self, ray: Ray) -> Vec<Intersection> {
+    fn local_intersect(&self, local_ray: Ray) -> Vec<Intersection> {
         match &self.shape {
             ShapeOrGroup::Shape { shape, material } => shape
-                .local_intersect(ray)
+                .local_intersect(local_ray)
                 .into_iter()
                 .map(|t| {
                     Intersection::new(
@@ -75,7 +102,7 @@ impl Object {
 
             ShapeOrGroup::Group(group) => group
                 .iter()
-                .flat_map(|object| object.intersect(ray))
+                .flat_map(|object| object.intersect(local_ray))
                 .map(|i| {
                     Intersection::new(
                         i.t,
@@ -118,7 +145,7 @@ impl Object {
         Self::from_simple(SimpleObject::cone())
     }
 }
-
+#[derive(Debug)]
 pub enum ShapeOrGroup {
     Shape { material: Material, shape: Shape },
     Group(Vec<Object>),
@@ -131,6 +158,96 @@ pub struct SimpleObject {
     pub shape: Shape,
 }
 
+#[derive(Debug)]
+pub struct BoundingBox {
+    min: Tuple,
+    max: Tuple,
+}
+
+impl BoundingBox {
+    #[allow(dead_code)]
+    pub fn to_object(&self) -> Object {
+        let Tuple {
+            x: w, y: h, z: d, ..
+        } = dbg!(self.max - self.min);
+
+        let mut object = Object::cube();
+        let pos = self.min + Tuple::vector(w / 2., h / 2., d / 2.);
+
+        object.transform =
+            Matrix4::translation(pos.x, pos.y, pos.z) * Matrix4::scaling(w / 2., h / 2., d / 2.);
+        let mut material = Material::new();
+        material.color = Color::new(0.5, 0., 0.5);
+        material.transparency = 0.925;
+        object.set_material(material);
+
+        // dbg!(object)
+        object
+    }
+
+    fn intersect(&self, world_ray: Ray) -> bool {
+        cube::local_intersect(self.min, self.max, world_ray).len() > 0
+    }
+
+    fn from_points(points: &[Tuple]) -> BoundingBox {
+        let mut min = Tuple::point(f64::INFINITY, f64::INFINITY, f64::INFINITY);
+        let mut max = Tuple::point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+
+        for point in points {
+            min.x = f64::min(min.x, point.x);
+            min.y = f64::min(min.y, point.y);
+            min.z = f64::min(min.z, point.z);
+            max.x = f64::max(max.x, point.x);
+            max.y = f64::max(max.y, point.y);
+            max.z = f64::max(max.z, point.z);
+        }
+        // panic!("{:?}", &[min, max]);
+
+        BoundingBox { min, max }
+    }
+
+    fn points(&self) -> [Tuple; 8] {
+        let Tuple {
+            x: x_min,
+            y: y_min,
+            z: z_min,
+            ..
+        } = self.min;
+        let Tuple {
+            x: x_max,
+            y: y_max,
+            z: z_max,
+            ..
+        } = self.max;
+
+        [
+            Tuple::point(x_min, y_min, z_min),
+            Tuple::point(x_min, y_max, z_min),
+            Tuple::point(x_min, y_min, z_max),
+            Tuple::point(x_min, y_max, z_max),
+            Tuple::point(x_max, y_min, z_min),
+            Tuple::point(x_max, y_max, z_min),
+            Tuple::point(x_max, y_min, z_max),
+            Tuple::point(x_max, y_max, z_max),
+        ]
+    }
+
+    fn union(&self, other: &BoundingBox) -> BoundingBox {
+        BoundingBox {
+            min: Tuple::point(
+                f64::min(self.min.x, other.min.x),
+                f64::min(self.min.y, other.min.y),
+                f64::min(self.min.z, other.min.z),
+            ),
+            max: Tuple::point(
+                f64::max(self.max.x, other.max.x),
+                f64::max(self.max.y, other.max.y),
+                f64::max(self.max.z, other.max.z),
+            ),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Shape {
     Sphere,
@@ -141,6 +258,44 @@ pub enum Shape {
 }
 
 impl Shape {
+    fn bounding_box(&self) -> BoundingBox {
+        match self {
+            Shape::Sphere => BoundingBox {
+                min: Tuple::point(-1., -1., -1.),
+                max: Tuple::point(1., 1., 1.),
+            },
+            Shape::Cube => BoundingBox {
+                min: Tuple::point(-1., -1., -1.),
+                max: Tuple::point(1., 1., 1.),
+            },
+            Shape::Plane => BoundingBox {
+                min: Tuple::point(f64::NEG_INFINITY, 0., f64::NEG_INFINITY),
+                max: Tuple::point(f64::INFINITY, 0., f64::INFINITY),
+            },
+            Shape::Cylinder(Cylinder {
+                minimum: min_y,
+                maximum: max_y,
+                ..
+            }) => BoundingBox {
+                min: Tuple::point(-1., *min_y, -1.),
+                max: Tuple::point(1., *max_y, 1.),
+            },
+            Shape::Cone(Cone {
+                minimum: min_y,
+                maximum: max_y,
+                ..
+            }) => {
+                let max_x = f64::max(min_y.abs(), max_y.abs());
+                let max_z = max_x;
+
+                BoundingBox {
+                    min: Tuple::point(-max_x, *min_y, -max_z),
+                    max: Tuple::point(max_x, *max_y, max_z),
+                }
+            }
+        }
+    }
+
     pub fn local_normal_at(&self, local_point: Tuple) -> Tuple {
         match self {
             Shape::Sphere => Sphere::local_normal_at(local_point),

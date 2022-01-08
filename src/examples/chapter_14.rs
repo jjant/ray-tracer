@@ -11,7 +11,6 @@ use crate::{
     tuple::Tuple,
     world::World,
 };
-// use std::f64::consts::PI;
 
 /// Scene by Manoël Trapier
 /// https://github.com/Godzil/DoRayMe/blob/45f5f8098e50ce746d4d4d130cffea1b9f98174f/tests/ch14_test.cpp
@@ -217,39 +216,3 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
 
     (camera, world)
 }
-
-// fn hexagon_corner() -> Object {
-//     let mut corner = Object::sphere();
-//     corner.transform = Matrix4::translation(0., 0., -1.) * Matrix4::scaling(0.25, 0.25, 0.25);
-
-//     corner
-// }
-
-// fn hexagon_edge() -> Object {
-//     let mut edge = Cylinder::new();
-//     edge.minimum = 0.;
-//     edge.maximum = 1.;
-
-//     let mut edge = Object::new(Shape::Cylinder(edge));
-//     edge.transform = Matrix4::translation(0., 0., -1.)
-//         * Matrix4::rotation_y(-PI / 6.)
-//         * Matrix4::rotation_z(-PI / 2.)
-//         * Matrix4::scaling(0.25, 1., 0.25);
-//     edge
-// }
-
-// fn hexagon_side() -> Object {
-//     Object::group(vec![hexagon_corner(), hexagon_edge()])
-// }
-
-// pub fn hexagon() -> Object {
-//     let mut hex = vec![];
-
-//     for n in 0..=5 {
-//         let mut side = hexagon_side();
-//         side.transform = Matrix4::rotation_y(n as f64 * PI / 3.);
-//         hex.push(side)
-//     }
-
-//     Object::group(hex)
-// }
