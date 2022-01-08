@@ -1,8 +1,4 @@
-use std::{cmp::Ordering, f64::consts::PI};
-
-pub fn degrees(angle_in_deg: f64) -> f64 {
-    angle_in_deg * PI / 180.
-}
+use std::cmp::Ordering;
 
 pub const EPSILON: f64 = 1e-8;
 

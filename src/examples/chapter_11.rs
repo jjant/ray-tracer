@@ -1,6 +1,6 @@
 use crate::{
     camera::Camera, color::Color, light::Light, material::Material, matrix4::Matrix4,
-    pattern::Pattern, shape::Object, transformations, tuple::Tuple, world::World,
+    pattern::Pattern, shape::SimpleObject, transformations, tuple::Tuple, world::World,
 };
 
 /// Scene by Manoël Trapier
@@ -23,7 +23,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     };
 
     /* Walls */
-    let mut floor = Object::plane();
+    let mut floor = SimpleObject::plane();
     *floor.transform_mut() = Matrix4::rotation_y(0.31415);
     *floor.material_mut() = Material::with_pattern(Pattern::checkered(
         Color::new(0.35, 0.35, 0.35),
@@ -31,73 +31,73 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     ));
     floor.material_mut().specular = 0.;
     floor.material_mut().reflective = 0.4;
-    world.objects.push(floor);
+    world.add_object(floor);
 
-    let mut ceiling = Object::plane();
+    let mut ceiling = SimpleObject::plane();
     *ceiling.transform_mut() = Matrix4::translation(0., 5., 0.);
     ceiling.material_mut().color = Color::new(0.8, 0.8, 0.8);
     ceiling.material_mut().ambient = 0.3;
     ceiling.material_mut().specular = 0.;
-    world.objects.push(ceiling);
+    world.add_object(ceiling);
 
-    let mut west_wall = Object::plane();
+    let mut west_wall = SimpleObject::plane();
     *west_wall.transform_mut() = Matrix4::translation(-5., 0., 0.)
         * Matrix4::rotation_z(1.5708)
         * Matrix4::rotation_y(1.5708);
     *west_wall.material_mut() = wall_material;
-    world.objects.push(west_wall);
+    world.add_object(west_wall);
 
-    let mut east_wall = Object::plane();
+    let mut east_wall = SimpleObject::plane();
     *east_wall.transform_mut() = Matrix4::translation(5., 0., 0.)
         * Matrix4::rotation_z(1.5708)
         * Matrix4::rotation_y(1.5708);
     *east_wall.material_mut() = wall_material;
-    world.objects.push(east_wall);
+    world.add_object(east_wall);
 
-    let mut north_wall = Object::plane();
+    let mut north_wall = SimpleObject::plane();
     *north_wall.transform_mut() = Matrix4::translation(0., 0., 5.) * Matrix4::rotation_x(1.5708);
     *north_wall.material_mut() = wall_material;
-    world.objects.push(north_wall);
+    world.add_object(north_wall);
 
-    let mut south_wall = Object::plane();
+    let mut south_wall = SimpleObject::plane();
     *south_wall.transform_mut() = Matrix4::translation(0., 0., -5.) * Matrix4::rotation_x(1.5708);
     *south_wall.material_mut() = wall_material;
-    world.objects.push(south_wall);
+    world.add_object(south_wall);
 
     /* Background balls */
-    let mut bg1 = Object::sphere();
+    let mut bg1 = SimpleObject::sphere();
     *bg1.transform_mut() = Matrix4::translation(4.6, 0.4, 1.) * Matrix4::scaling(0.4, 0.4, 0.4);
     bg1.material_mut().color = Color::new(0.8, 0.5, 0.3);
     bg1.material_mut().shininess = 50.;
-    world.objects.push(bg1);
+    world.add_object(bg1);
 
-    let mut bg2 = Object::sphere();
+    let mut bg2 = SimpleObject::sphere();
     *bg2.transform_mut() = Matrix4::translation(4.7, 0.3, 0.4) * Matrix4::scaling(0.3, 0.3, 0.3);
     bg2.material_mut().color = Color::new(0.9, 0.4, 0.5);
     bg2.material_mut().shininess = 50.;
-    world.objects.push(bg2);
+    world.add_object(bg2);
 
-    let mut bg3 = Object::sphere();
+    let mut bg3 = SimpleObject::sphere();
     *bg3.transform_mut() = Matrix4::translation(-1., 0.5, 4.5) * Matrix4::scaling(0.5, 0.5, 0.5);
     bg3.material_mut().color = Color::new(0.4, 0.9, 0.6);
     bg3.material_mut().shininess = 50.;
-    world.objects.push(bg3);
+    world.add_object(bg3);
 
-    let mut bg4 = Object::sphere();
+    let mut bg4 = SimpleObject::sphere();
     *bg4.transform_mut() = Matrix4::translation(-1.7, 0.3, 4.7) * Matrix4::scaling(0.3, 0.3, 0.3);
     bg4.material_mut().color = Color::new(0.4, 0.6, 0.9);
     bg4.material_mut().shininess = 50.;
-    world.objects.push(bg4);
+    world.add_object(bg4);
 
     /* Foreground balls */
-    let mut red_ball = Object::sphere();
+    let mut red_ball = SimpleObject::sphere();
     *red_ball.transform_mut() = Matrix4::translation(-0.6, 1., 0.6);
     red_ball.material_mut().color = Color::new(1., 0.3, 0.2);
     red_ball.material_mut().shininess = 5.;
     red_ball.material_mut().specular = 0.4;
-    world.objects.push(red_ball);
+    world.add_object(red_ball);
 
-    let mut blue_glass_ball = Object::sphere();
+    let mut blue_glass_ball = SimpleObject::sphere();
     *blue_glass_ball.transform_mut() =
         Matrix4::translation(0.6, 0.7, -0.6) * Matrix4::scaling(0.7, 0.7, 0.7);
     blue_glass_ball.material_mut().color = Color::new(0., 0., 0.2);
@@ -107,9 +107,9 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     blue_glass_ball.material_mut().shininess = 300.;
     blue_glass_ball.material_mut().transparency = 0.9;
     blue_glass_ball.material_mut().refractive_index = 1.5;
-    world.objects.push(blue_glass_ball);
+    world.add_object(blue_glass_ball);
 
-    let mut green_glass_ball = Object::sphere();
+    let mut green_glass_ball = SimpleObject::sphere();
     *green_glass_ball.transform_mut() =
         Matrix4::translation(-0.7, 0.5, -0.8) * Matrix4::scaling(0.5, 0.5, 0.5);
     green_glass_ball.material_mut().color = Color::new(0., 0.2, 0.);
@@ -119,9 +119,9 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     green_glass_ball.material_mut().shininess = 300.;
     green_glass_ball.material_mut().transparency = 0.9;
     green_glass_ball.material_mut().refractive_index = 1.5;
-    world.objects.push(green_glass_ball);
+    world.add_object(green_glass_ball);
 
-    world.light = Some(Light::point_light(
+    world.add_light(Light::point_light(
         Tuple::point(-4.9, 4.9, -1.),
         Color::white(),
     ));

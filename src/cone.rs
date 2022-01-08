@@ -4,9 +4,9 @@ use crate::{misc::EPSILON, ray::Ray, tuple::Tuple};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Cone {
-    minimum: f64,
-    maximum: f64,
-    closed: bool,
+    pub minimum: f64,
+    pub maximum: f64,
+    pub closed: bool,
 }
 
 impl Cone {
@@ -135,7 +135,7 @@ mod tests {
             ),
         ];
 
-        let mut cone = Cone::new();
+        let cone = Cone::new();
 
         for (point, direction, t0, t1) in examples {
             let direction = direction.normalize();

@@ -13,10 +13,6 @@ impl Color {
         Self { red, green, blue }
     }
 
-    pub fn rgb255(r: i32, g: i32, b: i32) -> Self {
-        Self::new(r as f64 / 255., g as f64 / 255., b as f64 / 255.)
-    }
-
     pub fn black() -> Self {
         Self {
             red: 0.,
@@ -162,11 +158,11 @@ mod tests {
 
     #[test]
     fn colors_using_rgb255() {
-        let white = Color::rgb255(255, 255, 255);
-        let black = Color::rgb255(0, 0, 0);
-        let red = Color::rgb255(255, 0, 0);
-        let green = Color::rgb255(0, 255, 0);
-        let blue = Color::rgb255(0, 0, 255);
+        let white = Color::new(1., 1., 1.);
+        let black = Color::new(0., 0., 0.);
+        let red = Color::new(1., 0., 0.);
+        let green = Color::new(0., 1., 0.);
+        let blue = Color::new(0., 0., 1.);
 
         assert_eq!(white, Color::white());
         assert_eq!(black, Color::black());

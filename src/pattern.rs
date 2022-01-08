@@ -1,4 +1,4 @@
-use crate::{color::Color, matrix4::Matrix4, shape::Object, tuple::Tuple};
+use crate::{color::Color, matrix4::Matrix4, shape::SimpleObject, tuple::Tuple};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pattern {
@@ -32,10 +32,12 @@ impl Pattern {
         Self::new(PatternType::Striped(StripePattern::new(a, b)))
     }
 
+    #[allow(dead_code)]
     pub fn gradient(a: Color, b: Color) -> Self {
         Self::new(PatternType::Gradient(GradientPattern::new(a, b)))
     }
 
+    #[allow(dead_code)]
     pub fn ring(a: Color, b: Color) -> Self {
         Self::new(PatternType::Ring(RingPattern::new(a, b)))
     }
@@ -55,8 +57,8 @@ impl Pattern {
         }
     }
 
-    pub fn pattern_at_object(&self, object: Object, world_point: Tuple) -> Color {
-        let object_point = object.transform().inverse().unwrap() * world_point;
+    pub fn pattern_at_object(&self, object: SimpleObject, world_point: Tuple) -> Color {
+        let object_point = object.transform.inverse().unwrap() * world_point;
         let pattern_point = self.transform.inverse().unwrap() * object_point;
 
         self.pattern_at(pattern_point)
@@ -148,7 +150,7 @@ impl CheckeredPattern {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shape::Object;
+    use crate::shape::SimpleObject;
 
     impl Pattern {
         pub fn test() -> Self {
@@ -216,7 +218,7 @@ mod tests {
 
     #[test]
     fn stripes_with_an_object_transformation() {
-        let mut object = Object::sphere();
+        let mut object = SimpleObject::sphere();
         *object.transform_mut() = Matrix4::scaling(2., 2., 2.);
 
         let pattern = Pattern::striped(Color::white(), Color::black());
@@ -227,7 +229,7 @@ mod tests {
 
     #[test]
     fn stripes_with_a_pattern_transformation() {
-        let object = Object::sphere();
+        let object = SimpleObject::sphere();
         let mut pattern = Pattern::striped(Color::white(), Color::black());
         *pattern.transform_mut() = Matrix4::scaling(2., 2., 2.);
 
@@ -238,7 +240,7 @@ mod tests {
 
     #[test]
     fn stripes_with_both_an_object_and_a_pattern_transformation() {
-        let mut object = Object::sphere();
+        let mut object = SimpleObject::sphere();
         *object.transform_mut() = Matrix4::scaling(2., 2., 2.);
 
         let mut pattern = Pattern::striped(Color::white(), Color::black());
@@ -267,7 +269,7 @@ mod tests {
 
     #[test]
     fn a_pattern_with_an_object_transformation() {
-        let mut shape = Object::sphere();
+        let mut shape = SimpleObject::sphere();
         *shape.transform_mut() = Matrix4::scaling(2., 2., 2.);
         let pattern = Pattern::test();
         let c = pattern.pattern_at_object(shape, Tuple::point(2., 3., 4.));
@@ -277,7 +279,7 @@ mod tests {
 
     #[test]
     fn a_pattern_with_a_pattern_transformation() {
-        let shape = Object::sphere();
+        let shape = SimpleObject::sphere();
         let mut pattern = Pattern::test();
         *pattern.transform_mut() = Matrix4::scaling(2., 2., 2.);
         let c = pattern.pattern_at_object(shape, Tuple::point(2., 3., 4.));
@@ -287,7 +289,7 @@ mod tests {
 
     #[test]
     fn a_pattern_with_both_an_object_and_a_pattern_transformation() {
-        let mut shape = Object::sphere();
+        let mut shape = SimpleObject::sphere();
         *shape.transform_mut() = Matrix4::scaling(2., 2., 2.);
         let mut pattern = Pattern::test();
         *pattern.transform_mut() = Matrix4::translation(0.5, 1., 1.5);
