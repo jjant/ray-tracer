@@ -191,21 +191,19 @@ impl BoundingBox {
         cube::local_intersect(self.min, self.max, world_ray).len() > 0
     }
 
-    fn from_points(points: &[Tuple]) -> BoundingBox {
-        let mut min = Tuple::point(f64::INFINITY, f64::INFINITY, f64::INFINITY);
-        let mut max = Tuple::point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+    pub(crate) fn from_points(points: &[Tuple]) -> BoundingBox {
+        let mut min_point = Tuple::point(f64::INFINITY, f64::INFINITY, f64::INFINITY);
+        let mut max_point = Tuple::point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
 
         for point in points {
-            min.x = f64::min(min.x, point.x);
-            min.y = f64::min(min.y, point.y);
-            min.z = f64::min(min.z, point.z);
-            max.x = f64::max(max.x, point.x);
-            max.y = f64::max(max.y, point.y);
-            max.z = f64::max(max.z, point.z);
+            min_point = min_point.min(point);
+            max_point = max_point.max(point);
         }
-        // panic!("{:?}", &[min, max]);
 
-        BoundingBox { min, max }
+        BoundingBox {
+            min: min_point,
+            max: max_point,
+        }
     }
 
     fn points(&self) -> [Tuple; 8] {
@@ -297,7 +295,7 @@ impl Shape {
                     max: Tuple::point(max_x, *max_y, max_z),
                 }
             }
-            Shape::Triangle(_triangle) => todo!(),
+            Shape::Triangle(triangle) => triangle.bounding_box(),
         }
     }
 

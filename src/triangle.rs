@@ -1,4 +1,4 @@
-use crate::{misc::EPSILON, ray::Ray, tuple::Tuple};
+use crate::{misc::EPSILON, ray::Ray, shape::BoundingBox, tuple::Tuple};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Triangle {
@@ -51,6 +51,10 @@ impl Triangle {
 
         let t = f * self.edge2().dot(origin_cross_e1);
         vec![t]
+    }
+
+    pub(crate) fn bounding_box(&self) -> BoundingBox {
+        BoundingBox::from_points(&[self.p1, self.p2, self.p3])
     }
 }
 

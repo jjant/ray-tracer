@@ -65,6 +65,25 @@ impl Tuple {
     pub fn reflect(self, normal: Tuple) -> Self {
         self - normal * 2. * self.dot(normal)
     }
+
+    pub(crate) fn zip_with(&self, other: &Self, f: impl Fn(f64, f64) -> f64) -> Self {
+        Self {
+            x: f(self.x, other.x),
+            y: f(self.y, other.y),
+            z: f(self.z, other.z),
+            w: f(self.w, other.w),
+        }
+    }
+
+    /// component-wise min
+    pub(crate) fn min(&self, other: &Self) -> Self {
+        self.zip_with(other, f64::min)
+    }
+
+    /// component-wise max
+    pub(crate) fn max(&self, other: &Self) -> Self {
+        self.zip_with(other, f64::max)
+    }
 }
 
 impl Add for Tuple {
