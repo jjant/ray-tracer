@@ -1,4 +1,11 @@
-use crate::{misc::EPSILON, ray::Ray, shape::BoundingBox, tuple::Tuple};
+use std::{collections::HashMap, fs::File, io::BufRead, io::BufReader};
+
+use crate::{
+    misc::EPSILON,
+    ray::Ray,
+    shape::{BoundingBox, Object, Shape},
+    tuple::Tuple,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Triangle {
@@ -55,6 +62,71 @@ impl Triangle {
 
     pub(crate) fn bounding_box(&self) -> BoundingBox {
         BoundingBox::from_points(&[self.p1, self.p2, self.p3])
+    }
+
+    pub(crate) fn from_obj_file(file_contents: &str) -> std::io::Result<WavefrontObj> {
+        let mut vertices = vec![];
+
+        let mut current_group = "default";
+        let mut groups: HashMap<String, Vec<Triangle>> = HashMap::new();
+
+        for line in file_contents.lines() {
+            if let Some((node_type, rest)) = line.split_once(" ") {
+                if node_type == "v" {
+                    let mut rest = rest.split(" ");
+                    let x = rest.next().unwrap().parse::<f64>().unwrap();
+                    let y = rest.next().unwrap().parse::<f64>().unwrap();
+                    let z = rest.next().unwrap().parse::<f64>().unwrap();
+
+                    vertices.push(Tuple::point(x, y, z));
+                } else if node_type == "f" {
+                    let rest = rest.split(" ");
+                    let mut indices = rest.map(|i| i.parse::<usize>().unwrap() - 1);
+
+                    let start_index = indices.next().unwrap();
+                    for window in indices.collect::<Vec<_>>().windows(2) {
+                        if let [index2, index3] = window {
+                            let entry = groups.entry(current_group.to_owned());
+
+                            entry.or_insert(vec![]).push(Triangle::new(
+                                vertices[start_index],
+                                vertices[*index2],
+                                vertices[*index3],
+                            ));
+                        }
+                    }
+                } else if node_type == "g" {
+                    current_group = rest;
+                } else {
+                    // Skip line
+                }
+            }
+        }
+
+        Ok(WavefrontObj { vertices, groups })
+    }
+}
+
+pub(crate) struct WavefrontObj {
+    vertices: Vec<Tuple>,
+    groups: HashMap<String, Vec<Triangle>>,
+}
+
+impl WavefrontObj {
+    pub(crate) fn to_group(self) -> Object {
+        Object::group(
+            self.groups
+                .into_iter()
+                .map(|(_, triangles)| {
+                    let triangles = triangles
+                        .into_iter()
+                        .map(|triangle| Object::new(Shape::Triangle(triangle)))
+                        .collect();
+
+                    Object::group(triangles)
+                })
+                .collect(),
+        )
     }
 }
 
@@ -158,5 +230,116 @@ mod tests {
 
         assert_eq!(xs.len(), 1);
         assert!(approx_equal(xs[0], 2.));
+    }
+
+    #[test]
+    fn parse_vertices() {
+        let file_contents = r#"
+v -1 1 0
+v -1.0000 0.5000 0.0000
+v 1 0 0
+v 1 1 0"#;
+
+        let obj = Triangle::from_obj_file(file_contents).unwrap();
+
+        assert_eq!(obj.vertices[1 - 1], Tuple::point(-1., 1., 0.));
+        assert_eq!(obj.vertices[2 - 1], Tuple::point(-1., 0.5, 0.));
+        assert_eq!(obj.vertices[3 - 1], Tuple::point(1., 0., 0.));
+        assert_eq!(obj.vertices[4 - 1], Tuple::point(1., 1., 0.));
+    }
+
+    #[test]
+    fn parsing_triangle_faces() {
+        let file_contents = r#"
+v -1 1 0
+v -1 0 0
+v 1 0 0
+v 1 1 0
+f 1 2 3
+f 1 3 4
+"#;
+        let obj = Triangle::from_obj_file(file_contents).unwrap();
+        let t1 = obj.groups["default"][0];
+        let t2 = obj.groups["default"][1];
+
+        assert_eq!(t1.p1, obj.vertices[1 - 1]);
+        assert_eq!(t1.p2, obj.vertices[2 - 1]);
+        assert_eq!(t1.p3, obj.vertices[3 - 1]);
+        assert_eq!(t2.p1, obj.vertices[1 - 1]);
+        assert_eq!(t2.p2, obj.vertices[3 - 1]);
+        assert_eq!(t2.p3, obj.vertices[4 - 1]);
+    }
+
+    #[test]
+    fn triangulating_polygons() {
+        let file_contents = r#"
+v -1 1 0
+v -1 0 0
+v 1 0 0
+v 1 1 0
+v 0 2 0
+f 1 2 3 4 5
+"#;
+        let obj = Triangle::from_obj_file(file_contents).unwrap();
+
+        let t1 = obj.groups["default"][0];
+        let t2 = obj.groups["default"][1];
+        let t3 = obj.groups["default"][2];
+
+        assert_eq!(t1.p1, obj.vertices[1 - 1]);
+        assert_eq!(t1.p2, obj.vertices[2 - 1]);
+        assert_eq!(t1.p3, obj.vertices[3 - 1]);
+        assert_eq!(t2.p1, obj.vertices[1 - 1]);
+        assert_eq!(t2.p2, obj.vertices[3 - 1]);
+        assert_eq!(t2.p3, obj.vertices[4 - 1]);
+        assert_eq!(t3.p1, obj.vertices[1 - 1]);
+        assert_eq!(t3.p2, obj.vertices[4 - 1]);
+        assert_eq!(t3.p3, obj.vertices[5 - 1]);
+    }
+
+    #[test]
+    fn triangles_in_groups() {
+        let file_contents = r#"
+v -1 1 0
+v -1 0 0
+v 1 0 0
+v 1 1 0
+g FirstGroup
+f 1 2 3
+g SecondGroup
+f 1 3 4
+"#;
+        let obj = Triangle::from_obj_file(file_contents).unwrap();
+
+        let t1 = obj.groups["FirstGroup"][0];
+        let t2 = obj.groups["SecondGroup"][0];
+
+        assert_eq!(t1.p1, obj.vertices[1 - 1]);
+        assert_eq!(t1.p2, obj.vertices[2 - 1]);
+        assert_eq!(t1.p3, obj.vertices[3 - 1]);
+        assert_eq!(t2.p1, obj.vertices[1 - 1]);
+        assert_eq!(t2.p2, obj.vertices[3 - 1]);
+        assert_eq!(t2.p3, obj.vertices[4 - 1]);
+    }
+
+    #[test]
+    fn converting_an_OBJ_file_to_a_group() {
+        let file_contents = r#"
+v -1 1 0
+v -1 0 0
+v 1 0 0
+v 1 1 0
+g FirstGroup
+f 1 2 3
+g SecondGroup
+f 1 3 4
+"#;
+        let obj = Triangle::from_obj_file(file_contents).unwrap();
+        let g = obj.to_group();
+
+        assert!(true);
+        // TODO:
+        // Then g includes "FirstGroup" from parser
+        // And g includes "SecondGroup" from parser
     }
 }
