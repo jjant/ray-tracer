@@ -19,6 +19,7 @@ mod ray;
 mod shape;
 mod sphere;
 mod transformations;
+mod triangle;
 mod tuple;
 mod world;
 use examples::{chapter_11, chapter_12, chapter_13, chapter_14};

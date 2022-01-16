@@ -4,6 +4,7 @@ use crate::cube;
 use crate::cylinder::Cylinder;
 use crate::misc::EPSILON;
 use crate::plane::Plane;
+use crate::triangle::Triangle;
 use crate::{
     cube::Cube, intersection::Intersection, material::Material, matrix4::Matrix4, ray::Ray,
     sphere::Sphere, tuple::Tuple,
@@ -256,6 +257,7 @@ pub enum Shape {
     Cube,
     Cylinder(Cylinder),
     Cone(Cone),
+    Triangle(Triangle),
 }
 
 impl Shape {
@@ -265,6 +267,7 @@ impl Shape {
                 min: Tuple::point(-(1. + EPSILON), -(1. + EPSILON), -(1. + EPSILON)),
                 max: Tuple::point(1. + EPSILON, 1. + EPSILON, 1. + EPSILON),
             },
+
             Shape::Cube => BoundingBox {
                 min: Tuple::point(-1., -1., -1.),
                 max: Tuple::point(1., 1., 1.),
@@ -294,6 +297,7 @@ impl Shape {
                     max: Tuple::point(max_x, *max_y, max_z),
                 }
             }
+            Shape::Triangle(_triangle) => todo!(),
         }
     }
 
@@ -304,6 +308,7 @@ impl Shape {
             Shape::Cube => Cube::local_normal_at(local_point),
             Shape::Cylinder(cylinder) => cylinder.local_normal_at(local_point),
             Shape::Cone(cone) => cone.local_normal_at(local_point),
+            Shape::Triangle(triangle) => triangle.local_normal_at(local_point),
         }
     }
 
@@ -314,6 +319,7 @@ impl Shape {
             Shape::Cube => Cube::local_intersect(local_ray),
             Shape::Cylinder(cylinder) => cylinder.local_intersect(local_ray),
             Shape::Cone(cone) => cone.local_intersect(local_ray),
+            Shape::Triangle(triangle) => triangle.local_intersect(local_ray),
         }
     }
 }
@@ -351,6 +357,11 @@ impl SimpleObject {
     #[allow(dead_code)]
     pub fn cone() -> Self {
         Self::new(Shape::Cone(Cone::new()))
+    }
+
+    #[allow(dead_code)]
+    pub fn triangle(p1: Tuple, p2: Tuple, p3: Tuple) -> Self {
+        Self::new(Shape::Triangle(Triangle::new(p1, p2, p3)))
     }
 
     pub fn transform(&self) -> Matrix4 {
