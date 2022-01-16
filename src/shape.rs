@@ -11,6 +11,7 @@ use crate::{
 };
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct Object {
     pub transform: Matrix4,
     pub shape: ShapeOrGroup,
@@ -148,6 +149,7 @@ impl Object {
     }
 }
 #[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum ShapeOrGroup {
     Shape { material: Material, shape: Shape },
     Group(Vec<Object>),

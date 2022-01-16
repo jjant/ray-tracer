@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::File, io::BufRead, io::BufReader};
+use std::collections::HashMap;
 
 use crate::{
     misc::EPSILON,
@@ -73,14 +73,14 @@ impl Triangle {
         for line in file_contents.lines() {
             if let Some((node_type, rest)) = line.split_once(" ") {
                 if node_type == "v" {
-                    let mut rest = rest.split(" ");
+                    let mut rest = rest.split_ascii_whitespace();
                     let x = rest.next().unwrap().parse::<f64>().unwrap();
                     let y = rest.next().unwrap().parse::<f64>().unwrap();
                     let z = rest.next().unwrap().parse::<f64>().unwrap();
 
                     vertices.push(Tuple::point(x, y, z));
                 } else if node_type == "f" {
-                    let rest = rest.split(" ");
+                    let rest = rest.split_ascii_whitespace();
                     let mut indices = rest.map(|i| i.parse::<usize>().unwrap() - 1);
 
                     let start_index = indices.next().unwrap();
@@ -103,13 +103,19 @@ impl Triangle {
             }
         }
 
-        Ok(WavefrontObj { vertices, groups })
+        Ok(WavefrontObj {
+            groups,
+            #[cfg(test)]
+            vertices,
+        })
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct WavefrontObj {
-    vertices: Vec<Tuple>,
     groups: HashMap<String, Vec<Triangle>>,
+    #[cfg(test)]
+    vertices: Vec<Tuple>,
 }
 
 impl WavefrontObj {
@@ -132,7 +138,7 @@ impl WavefrontObj {
 
 #[cfg(test)]
 mod tests {
-    use crate::misc::approx_equal;
+    use crate::{misc::approx_equal, shape::ShapeOrGroup};
 
     use super::*;
 
@@ -323,7 +329,7 @@ f 1 3 4
     }
 
     #[test]
-    fn converting_an_OBJ_file_to_a_group() {
+    fn converting_an_obj_file_to_a_group() {
         let file_contents = r#"
 v -1 1 0
 v -1 0 0
@@ -335,11 +341,26 @@ g SecondGroup
 f 1 3 4
 "#;
         let obj = Triangle::from_obj_file(file_contents).unwrap();
+        let t1 = obj.groups["FirstGroup"][0];
+        let t2 = obj.groups["SecondGroup"][0];
+
         let g = obj.to_group();
 
-        assert!(true);
-        // TODO:
-        // Then g includes "FirstGroup" from parser
-        // And g includes "SecondGroup" from parser
+        let group_objects = if let ShapeOrGroup::Group(group) = g.shape {
+            group
+        } else {
+            panic!("Didn't get a group back from obj file!")
+        };
+
+        // The order of the triangles in this test is a bit arbitrary
+        // because of iteration order in a HashMap
+        assert_eq!(
+            group_objects[0],
+            Object::group(vec![Object::new(Shape::Triangle(t2))])
+        );
+        assert_eq!(
+            group_objects[1],
+            Object::group(vec![Object::new(Shape::Triangle(t1))])
+        );
     }
 }
