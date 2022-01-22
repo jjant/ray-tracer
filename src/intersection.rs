@@ -1,17 +1,43 @@
 use crate::misc::{approx_equal, EPSILON};
 use crate::ray::Ray;
 use crate::shape::SimpleObject;
+use crate::triangle::UVT;
 use crate::tuple::Tuple;
+
+pub(crate) enum TorUVT {
+    JustT { t: f64 },
+    UVT { uvt: UVT },
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct Intersection {
     pub t: f64,
+    uv: Option<(f64, f64)>,
     pub object: SimpleObject,
 }
 
 impl Intersection {
     pub fn new(t: f64, object: SimpleObject) -> Self {
-        Self { t, object }
+        Self {
+            t,
+            uv: None,
+            object,
+        }
+    }
+
+    pub(crate) fn new_with_uv(t_or_uvt: &TorUVT, object: SimpleObject) -> Self {
+        match t_or_uvt {
+            &TorUVT::JustT { t } => Self {
+                t,
+                uv: None,
+                object,
+            },
+            &TorUVT::UVT { uvt } => Self {
+                t: uvt.t,
+                uv: Some((uvt.u, uvt.v)),
+                object,
+            },
+        }
     }
 
     // Returns the closest intersection, that is
@@ -33,7 +59,7 @@ impl Intersection {
         let point = ray.position(self.t);
         let eye_vector = -ray.direction;
 
-        let tentative_normal = self.object.normal_at(point);
+        let tentative_normal = self.object.normal_at(self, point);
 
         let (inside, normal_vector) = if tentative_normal.dot(eye_vector) < 0. {
             (true, -tentative_normal)
@@ -99,6 +125,10 @@ impl Intersection {
         }
 
         (n1, n2)
+    }
+
+    pub(crate) fn uvt(&self) -> Option<UVT> {
+        self.uv.map(|(u, v)| UVT { t: self.t, u, v })
     }
 }
 

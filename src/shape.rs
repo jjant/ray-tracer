@@ -2,6 +2,7 @@ use crate::color::Color;
 use crate::cone::Cone;
 use crate::cube;
 use crate::cylinder::Cylinder;
+use crate::intersection::TorUVT;
 use crate::misc::EPSILON;
 use crate::plane::Plane;
 use crate::triangle::Triangle;
@@ -92,8 +93,8 @@ impl Object {
                 .local_intersect(local_ray)
                 .into_iter()
                 .map(|t| {
-                    Intersection::new(
-                        t,
+                    Intersection::new_with_uv(
+                        &t,
                         SimpleObject {
                             material: *material,
                             transform: self.transform,
@@ -301,25 +302,50 @@ impl Shape {
         }
     }
 
-    pub fn local_normal_at(&self, local_point: Tuple) -> Tuple {
+    pub fn local_normal_at(&self, intersection: &Intersection, local_point: Tuple) -> Tuple {
         match self {
             Shape::Sphere => Sphere::local_normal_at(local_point),
             Shape::Plane => Plane::local_normal_at(local_point),
             Shape::Cube => Cube::local_normal_at(local_point),
             Shape::Cylinder(cylinder) => cylinder.local_normal_at(local_point),
             Shape::Cone(cone) => cone.local_normal_at(local_point),
-            Shape::Triangle(triangle) => triangle.local_normal_at(local_point),
+            Shape::Triangle(triangle) => {
+                let uvt = intersection.uvt().unwrap();
+
+                triangle.local_normal_at(&uvt)
+            }
         }
     }
 
-    fn local_intersect(&self, local_ray: Ray) -> Vec<f64> {
+    fn local_intersect(&self, local_ray: Ray) -> Vec<TorUVT> {
         match self {
-            Shape::Sphere => Sphere::local_intersect(local_ray),
-            Shape::Plane => Plane::local_intersect(local_ray),
-            Shape::Cube => Cube::local_intersect(local_ray),
-            Shape::Cylinder(cylinder) => cylinder.local_intersect(local_ray),
-            Shape::Cone(cone) => cone.local_intersect(local_ray),
-            Shape::Triangle(triangle) => triangle.local_intersect(local_ray),
+            Shape::Sphere => Sphere::local_intersect(local_ray)
+                .into_iter()
+                .map(|t| TorUVT::JustT { t })
+                .collect(),
+            Shape::Plane => Plane::local_intersect(local_ray)
+                .into_iter()
+                .map(|t| TorUVT::JustT { t })
+                .collect(),
+            Shape::Cube => Cube::local_intersect(local_ray)
+                .into_iter()
+                .map(|t| TorUVT::JustT { t })
+                .collect(),
+            Shape::Cylinder(cylinder) => cylinder
+                .local_intersect(local_ray)
+                .into_iter()
+                .map(|t| TorUVT::JustT { t })
+                .collect(),
+            Shape::Cone(cone) => cone
+                .local_intersect(local_ray)
+                .into_iter()
+                .map(|t| TorUVT::JustT { t })
+                .collect(),
+            Shape::Triangle(triangle) => triangle
+                .local_intersect(local_ray)
+                .into_iter()
+                .map(|uvt| TorUVT::UVT { uvt })
+                .collect(),
         }
     }
 }
@@ -380,10 +406,10 @@ impl SimpleObject {
         &mut self.material
     }
 
-    pub fn normal_at(&self, world_point: Tuple) -> Tuple {
+    pub fn normal_at(&self, intersection: &Intersection, world_point: Tuple) -> Tuple {
         let inverse_transform = self.transform().inverse().unwrap();
         let local_point = inverse_transform * world_point;
-        let local_normal = self.shape.local_normal_at(local_point);
+        let local_normal = self.shape.local_normal_at(intersection, local_point);
 
         let mut world_normal = inverse_transform.transpose() * local_normal;
         // TODO: Investigate what's up with setting the w = 0;
@@ -419,7 +445,7 @@ mod tests {
             self.shape
                 .local_intersect(local_ray)
                 .into_iter()
-                .map(|t| Intersection::new(t, *self))
+                .map(|t_or_uvt| Intersection::new_with_uv(&t_or_uvt, *self))
                 .collect()
         }
     }
@@ -490,8 +516,8 @@ mod tests {
         let mut s = SimpleObject::new(Shape::Sphere);
 
         *s.transform_mut() = Matrix4::translation(0., 1., 0.);
-
-        let n = s.normal_at(Tuple::point(0., 1.70711, -0.70711));
+        let i = Intersection::new(0., s);
+        let n = s.normal_at(&i, Tuple::point(0., 1.70711, -0.70711));
         assert_eq!(n, Tuple::vector(0., 0.70711, -0.70711));
     }
 
@@ -501,8 +527,8 @@ mod tests {
         let m = Matrix4::scaling(1., 0.5, 1.) * Matrix4::rotation_z(PI / 5.);
 
         *s.transform_mut() = m;
-
-        let n = s.normal_at(Tuple::point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.));
+        let i = Intersection::new(0., s);
+        let n = s.normal_at(&i, Tuple::point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.));
         assert_eq!(n, Tuple::vector(0., 0.97014, -0.24254));
     }
 
