@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use crate::{canvas::Canvas, matrix4::Matrix4, ray::Ray, tuple::Tuple, world::World};
+use crate::{canvas::Canvas, math::matrix4::Matrix4, math::tuple::Tuple, ray::Ray, world::World};
 
 #[derive(Clone, Copy)]
 pub struct Camera {
@@ -86,7 +86,9 @@ impl Camera {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{color::Color, misc::approx_equal, transformations::view_transform, world::World};
+    use crate::{
+        color::Color, math::transformations::view_transform, misc::approx_equal, world::World,
+    };
     use std::f64::consts::PI;
 
     #[test]

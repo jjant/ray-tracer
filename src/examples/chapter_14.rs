@@ -1,14 +1,14 @@
 use crate::{
     camera::Camera,
     color::Color,
-    cone::Cone,
-    cylinder::Cylinder,
     light::Light,
     material::Material,
-    matrix4::Matrix4,
+    math::matrix4::Matrix4,
+    math::transformations,
+    math::tuple::Tuple,
+    shape::cone::Cone,
+    shape::cylinder::Cylinder,
     shape::{Object, Shape, SimpleObject},
-    transformations,
-    tuple::Tuple,
     world::World,
 };
 

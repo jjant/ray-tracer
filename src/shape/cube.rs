@@ -1,6 +1,6 @@
 use std::f64::INFINITY;
 
-use crate::{misc::EPSILON, ray::Ray, tuple::Tuple};
+use crate::{math::tuple::Tuple, misc::EPSILON, ray::Ray};
 
 pub struct Cube;
 

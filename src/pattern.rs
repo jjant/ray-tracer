@@ -1,4 +1,4 @@
-use crate::{color::Color, matrix4::Matrix4, shape::SimpleObject, tuple::Tuple};
+use crate::{color::Color, math::matrix4::Matrix4, math::tuple::Tuple, shape::SimpleObject};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pattern {

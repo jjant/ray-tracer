@@ -1,5 +1,5 @@
-use crate::matrix4::Matrix4;
-use crate::tuple::Tuple;
+use crate::math::matrix4::Matrix4;
+use crate::math::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Ray {

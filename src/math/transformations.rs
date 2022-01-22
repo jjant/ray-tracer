@@ -1,5 +1,5 @@
-use crate::matrix4::Matrix4;
-use crate::tuple::Tuple;
+use super::matrix4::Matrix4;
+use super::tuple::Tuple;
 
 pub fn view_transform(from: Tuple, to: Tuple, up: Tuple) -> Matrix4 {
     let forward = (to - from).normalize();

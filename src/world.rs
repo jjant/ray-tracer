@@ -2,9 +2,9 @@ use crate::color::Color;
 use crate::intersection::{ComputedIntersection, Intersection};
 use crate::light::Light;
 use crate::material;
+use crate::math::tuple::Tuple;
 use crate::ray::Ray;
 use crate::shape::{Object, SimpleObject};
-use crate::tuple::Tuple;
 
 const DEFAULT_ALLOWED_DEPTH: i32 = 8;
 
@@ -151,7 +151,7 @@ impl World {
 mod tests {
     use super::*;
     use crate::material::Material;
-    use crate::matrix4::Matrix4;
+    use crate::math::matrix4::Matrix4;
     use crate::misc::approx_equal;
     use crate::pattern::Pattern;
     use crate::shape::ShapeOrGroup;

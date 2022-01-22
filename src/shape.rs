@@ -1,15 +1,23 @@
 use crate::color::Color;
-use crate::cone::Cone;
-use crate::cube;
-use crate::cylinder::Cylinder;
+use crate::intersection::Intersection;
 use crate::intersection::TorUVT;
+use crate::material::Material;
+use crate::math::matrix4::Matrix4;
+use crate::math::tuple::Tuple;
 use crate::misc::EPSILON;
-use crate::plane::Plane;
-use crate::triangle::Triangle;
-use crate::{
-    cube::Cube, intersection::Intersection, material::Material, matrix4::Matrix4, ray::Ray,
-    sphere::Sphere, tuple::Tuple,
-};
+use crate::ray::Ray;
+pub(crate) mod cone;
+pub(crate) mod cube;
+pub(crate) mod cylinder;
+pub(crate) mod plane;
+pub(crate) mod sphere;
+pub(crate) mod triangle;
+use cone::Cone;
+use cube::Cube;
+use cylinder::Cylinder;
+use plane::Plane;
+use sphere::Sphere;
+use triangle::Triangle;
 
 #[derive(Debug)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -424,7 +432,7 @@ impl SimpleObject {
 
 #[cfg(test)]
 mod tests {
-    use crate::tuple::Tuple;
+    use crate::math::tuple::Tuple;
     use std::f64::consts::PI;
 
     use super::*;

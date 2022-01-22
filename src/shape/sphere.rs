@@ -1,5 +1,5 @@
+use crate::math::tuple::Tuple;
 use crate::ray::Ray;
-use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Sphere {}

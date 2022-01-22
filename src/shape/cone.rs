@@ -1,6 +1,6 @@
 use std::f64::{INFINITY, NEG_INFINITY};
 
-use crate::{misc::EPSILON, ray::Ray, tuple::Tuple};
+use crate::{math::tuple::Tuple, misc::EPSILON, ray::Ray};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Cone {
@@ -115,7 +115,7 @@ impl PartialEq for Cone {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{misc::approx_equal, ray::Ray, tuple::Tuple};
+    use crate::{math::tuple::Tuple, misc::approx_equal, ray::Ray};
 
     #[test]
     fn intersecting_a_cone_with_a_ray() {

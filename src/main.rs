@@ -3,28 +3,18 @@ mod canvas;
 mod color;
 mod examples;
 
-mod cone;
-mod cube;
-mod cylinder;
 mod intersection;
 mod light;
 mod material;
-mod matrix2;
-mod matrix3;
-mod matrix4;
 mod misc;
 mod pattern;
-mod plane;
 mod ray;
 mod shape;
-mod sphere;
-mod transformations;
-mod triangle;
-mod tuple;
 mod world;
 use examples::{chapter_11, chapter_12, chapter_13, chapter_14, chapter_15};
 use std::fs::File;
 use std::io::Write;
+mod math;
 
 const ASPECT: f64 = 16. / 9.;
 

@@ -1,6 +1,6 @@
 use crate::{
-    camera::Camera, color::Color, light::Light, material::Material, matrix4::Matrix4,
-    pattern::Pattern, shape::SimpleObject, transformations, tuple::Tuple, world::World,
+    camera::Camera, color::Color, light::Light, material::Material, math::matrix4::Matrix4,
+    math::transformations, math::tuple::Tuple, pattern::Pattern, shape::SimpleObject, world::World,
 };
 
 /// Scene by Manoël Trapier

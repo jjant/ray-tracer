@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::tuple::Tuple;
+use crate::math::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Light {

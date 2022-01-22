@@ -1,8 +1,8 @@
+use crate::math::tuple::Tuple;
 use crate::misc::{approx_equal, EPSILON};
 use crate::ray::Ray;
+use crate::shape::triangle::UVT;
 use crate::shape::SimpleObject;
-use crate::triangle::UVT;
-use crate::tuple::Tuple;
 
 pub(crate) enum TorUVT {
     JustT { t: f64 },
@@ -172,7 +172,7 @@ impl ComputedIntersection {
 
 #[cfg(test)]
 mod tests {
-    use crate::matrix4::Matrix4;
+    use crate::math::matrix4::Matrix4;
 
     use super::*;
 

@@ -1,6 +1,6 @@
 use crate::{
-    camera::Camera, color::Color, light::Light, matrix4::Matrix4, shape::Object, transformations,
-    triangle::Triangle, tuple::Tuple, world::World,
+    camera::Camera, color::Color, light::Light, math::matrix4::Matrix4, math::transformations,
+    math::tuple::Tuple, shape::triangle::Triangle, shape::Object, world::World,
 };
 use std::f64;
 pub fn load_model() -> Object {

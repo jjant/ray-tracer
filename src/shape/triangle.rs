@@ -4,10 +4,10 @@ use std::{
 };
 
 use crate::{
+    math::tuple::Tuple,
     misc::EPSILON,
     ray::Ray,
     shape::{BoundingBox, Object, Shape},
-    tuple::Tuple,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]
