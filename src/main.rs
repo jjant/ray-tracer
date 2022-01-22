@@ -28,7 +28,7 @@ use std::io::Write;
 
 const ASPECT: f64 = 16. / 9.;
 
-const WIDTH: usize = 200;
+const WIDTH: usize = 400;
 const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
 fn main() {

@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
         let s = SimpleObject::sphere();
-        let i = Intersection::new(0., s);
+        let i = Intersection::new_(0., s);
         let n = s.normal_at(&i, Tuple::point(1., 0., 0.));
         assert_eq!(n, Tuple::vector(1., 0., 0.));
     }
@@ -45,7 +45,7 @@ mod tests {
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_y_axis() {
         let s = SimpleObject::sphere();
-        let i = Intersection::new(0., s);
+        let i = Intersection::new_(0., s);
         let n = s.normal_at(&i, Tuple::point(0., 1., 0.));
         assert_eq!(n, Tuple::vector(0., 1., 0.));
     }
@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_z_axis() {
         let s = SimpleObject::sphere();
-        let i = Intersection::new(0., s);
+        let i = Intersection::new_(0., s);
         let n = s.normal_at(&i, Tuple::point(0., 0., 1.));
         assert_eq!(n, Tuple::vector(0., 0., 1.));
     }
@@ -61,7 +61,7 @@ mod tests {
     #[test]
     fn the_normal_on_a_sphere_at_a_nonaxial_point() {
         let s = SimpleObject::sphere();
-        let i = Intersection::new(0., s);
+        let i = Intersection::new_(0., s);
         let n = s.normal_at(
             &i,
             Tuple::point(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.),

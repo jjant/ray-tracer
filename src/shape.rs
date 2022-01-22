@@ -93,7 +93,7 @@ impl Object {
                 .local_intersect(local_ray)
                 .into_iter()
                 .map(|t| {
-                    Intersection::new_with_uv(
+                    Intersection::new(
                         &t,
                         SimpleObject {
                             material: *material,
@@ -107,15 +107,9 @@ impl Object {
             ShapeOrGroup::Group(group) => group
                 .iter()
                 .flat_map(|object| object.intersect(local_ray))
-                .map(|i| {
-                    Intersection::new(
-                        i.t,
-                        SimpleObject {
-                            material: i.object.material,
-                            transform: self.transform * i.object.transform,
-                            shape: i.object.shape,
-                        },
-                    )
+                .map(|mut i| {
+                    i.object.transform = self.transform * i.object.transform;
+                    i
                 })
                 .collect(),
         }
@@ -186,7 +180,6 @@ impl BoundingBox {
         material.transparency = 0.925;
         object.set_material(material);
 
-        // dbg!(object)
         object
     }
 
@@ -445,7 +438,7 @@ mod tests {
             self.shape
                 .local_intersect(local_ray)
                 .into_iter()
-                .map(|t_or_uvt| Intersection::new_with_uv(&t_or_uvt, *self))
+                .map(|t_or_uvt| Intersection::new(&t_or_uvt, *self))
                 .collect()
         }
     }
@@ -516,7 +509,7 @@ mod tests {
         let mut s = SimpleObject::new(Shape::Sphere);
 
         *s.transform_mut() = Matrix4::translation(0., 1., 0.);
-        let i = Intersection::new(0., s);
+        let i = Intersection::new_(0., s);
         let n = s.normal_at(&i, Tuple::point(0., 1.70711, -0.70711));
         assert_eq!(n, Tuple::vector(0., 0.70711, -0.70711));
     }
@@ -527,7 +520,7 @@ mod tests {
         let m = Matrix4::scaling(1., 0.5, 1.) * Matrix4::rotation_z(PI / 5.);
 
         *s.transform_mut() = m;
-        let i = Intersection::new(0., s);
+        let i = Intersection::new_(0., s);
         let n = s.normal_at(&i, Tuple::point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.));
         assert_eq!(n, Tuple::vector(0., 0.97014, -0.24254));
     }
