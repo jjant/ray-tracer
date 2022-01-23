@@ -25,3 +25,7 @@ path = "./chapter_14.rs"
 [[bin]]
 name = "chapter_15"
 path = "./chapter_15.rs"
+
+[[bin]]
+name = "chapter_16"
+path = "./chapter_16.rs"
