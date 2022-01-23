@@ -30,6 +30,21 @@ pub struct Object {
 }
 
 impl Object {
+    pub(crate) fn includes(&self, object: SimpleObject) -> bool {
+        match &self.shape {
+            ShapeOrGroup::Group(group) => group.iter().any(|o| o.includes(object)),
+            ShapeOrGroup::Shape {
+                shape: Shape::CSG(csg),
+                ..
+            } => csg.includes(object),
+            ShapeOrGroup::Shape { .. } => {
+                let o = SimpleObject::from_object(self).unwrap();
+
+                o == object
+            }
+        }
+    }
+
     pub fn bounding_box(&self) -> BoundingBox {
         let inner_bb = match &self.shape {
             ShapeOrGroup::Shape { shape, .. } => shape.bounding_box(),
@@ -78,8 +93,16 @@ impl Object {
         let intersects_box = bb.intersect(ray);
 
         if intersects_box {
-            let local_ray = ray.transform(self.transform.inverse().unwrap());
-            self.local_intersect(local_ray)
+            if let ShapeOrGroup::Shape {
+                shape: Shape::CSG(csg),
+                ..
+            } = &self.shape
+            {
+                csg.intersect(ray)
+            } else {
+                let local_ray = ray.transform(self.transform.inverse().unwrap());
+                self.local_intersect(local_ray)
+            }
         } else {
             vec![]
         }
@@ -130,26 +153,35 @@ impl Object {
         Self::new(Shape::Sphere)
     }
 
-    #[allow(dead_code)]
     pub fn plane() -> Self {
         Self::new(Shape::Plane)
     }
 
-    #[allow(dead_code)]
     pub fn cube() -> Self {
         Self::new(Shape::Cube)
     }
 
-    #[allow(dead_code)]
     pub fn cylinder() -> Self {
         Self::new(Shape::Cylinder(Cylinder::new()))
     }
 
-    #[allow(dead_code)]
     pub fn cone() -> Self {
         Self::new(Shape::Cone(Cone::new()))
     }
+
+    pub fn union(left: Object, right: Object) -> Self {
+        Self::new(Shape::CSG(CSG::union(left, right)))
+    }
+
+    pub fn intersection(left: Object, right: Object) -> Self {
+        Self::new(Shape::CSG(CSG::intersection(left, right)))
+    }
+
+    pub fn difference(left: Object, right: Object) -> Self {
+        Self::new(Shape::CSG(CSG::difference(left, right)))
+    }
 }
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum ShapeOrGroup {
     Shape { material: Material, shape: Shape },
@@ -299,7 +331,14 @@ impl Shape {
                 }
             }
             Shape::Triangle(triangle) => triangle.bounding_box(),
-            Shape::CSG(_) => todo!(),
+            Shape::CSG(_) =>
+            // TODO
+            {
+                BoundingBox {
+                    min: Tuple::point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY),
+                    max: Tuple::point(f64::INFINITY, f64::INFINITY, f64::INFINITY),
+                }
+            }
         }
     }
 
@@ -315,7 +354,7 @@ impl Shape {
 
                 triangle.local_normal_at(&uvt)
             }
-            Shape::CSG(_) => todo!(),
+            Shape::CSG(_) => unreachable!(),
         }
     }
 
@@ -348,12 +387,23 @@ impl Shape {
                 .into_iter()
                 .map(|uvt| TorUVT::UVT { uvt })
                 .collect(),
-            Shape::CSG(_) => todo!(),
+            Shape::CSG(_) => unreachable!(),
         }
     }
 }
 
 impl<'a> SimpleObject<'a> {
+    pub(crate) fn from_object(object: &'a Object) -> Option<Self> {
+        match &object.shape {
+            ShapeOrGroup::Shape { material, shape } => Some(Self {
+                transform: object.transform,
+                material: *material,
+                shape: shape,
+            }),
+            ShapeOrGroup::Group(_) => None,
+        }
+    }
+
     pub fn transform(&self) -> Matrix4 {
         self.transform
     }
@@ -383,7 +433,7 @@ mod tests {
     use super::*;
 
     impl Object {
-        pub fn glass_sphere() -> Self {
+        pub(crate) fn glass_sphere() -> Self {
             let mut s = Self::sphere();
             let mut material = Material::new();
             material.transparency = 1.0;
@@ -395,17 +445,6 @@ mod tests {
     }
 
     impl<'a> SimpleObject<'a> {
-        pub fn from_object(object: &'a Object) -> Option<Self> {
-            match &object.shape {
-                ShapeOrGroup::Shape { material, shape } => Some(Self {
-                    transform: object.transform,
-                    material: *material,
-                    shape: shape,
-                }),
-                ShapeOrGroup::Group(_) => None,
-            }
-        }
-
         /// The maths assume the sphere is located in the origin,
         /// and it handles the general case by "unmoving" the ray with the opposite transform.
         pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
