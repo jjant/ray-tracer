@@ -51,7 +51,7 @@ impl PartialEq for Material {
     }
 }
 
-pub fn lighting(
+pub(crate) fn lighting(
     material: Material,
     object: SimpleObject,
     light: Light,
@@ -107,7 +107,7 @@ pub fn lighting(
 }
 #[cfg(test)]
 mod tests {
-    use crate::misc::approx_equal;
+    use crate::{misc::approx_equal, shape::Object};
 
     use super::*;
 
@@ -126,73 +126,79 @@ mod tests {
     #[test]
     fn lighting_with_the_eye_between_the_light_and_the_surface() {
         let m = Material::new();
-        let o = SimpleObject::sphere();
+        let o = Object::sphere();
+        let s = SimpleObject::from_object(&o).unwrap();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., 0., -1.);
         let normal_vector = Tuple::vector(0., 0., -1.);
         let light = Light::point_light(Tuple::point(0., 0., -10.), Color::new(1., 1., 1.));
-        let result = lighting(m, o, light, position, eye_vector, normal_vector, false);
+        let result = lighting(m, s, light, position, eye_vector, normal_vector, false);
         assert_eq!(result, Color::new(1.9, 1.9, 1.9));
     }
 
     #[test]
     fn lighting_with_the_eye_between_light_and_surface_eye_offset_45_degrees() {
         let m = Material::new();
-        let o = SimpleObject::sphere();
+        let o = Object::sphere();
+        let s = SimpleObject::from_object(&o).unwrap();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.);
         let normal_vector = Tuple::vector(0., 0., -1.);
         let light = Light::point_light(Tuple::point(0., 0., -10.), Color::new(1., 1., 1.));
-        let result = lighting(m, o, light, position, eye_vector, normal_vector, false);
+        let result = lighting(m, s, light, position, eye_vector, normal_vector, false);
         assert_eq!(result, Color::new(1.0, 1.0, 1.0));
     }
 
     #[test]
     fn lighting_with_eye_opposite_surface_light_offset_45_degrees() {
         let m = Material::new();
-        let o = SimpleObject::sphere();
+        let o = Object::sphere();
+        let s = SimpleObject::from_object(&o).unwrap();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., 0., -1.);
         let normal_vector = Tuple::vector(0., 0., -1.);
         let light = Light::point_light(Tuple::point(0., 10., -10.), Color::new(1., 1., 1.));
-        let result = lighting(m, o, light, position, eye_vector, normal_vector, false);
+        let result = lighting(m, s, light, position, eye_vector, normal_vector, false);
         assert_eq!(result, Color::new(0.7364, 0.7364, 0.7364));
     }
 
     #[test]
     fn lighting_with_eye_in_the_path_of_the_reflection_vector() {
         let m = Material::new();
-        let o = SimpleObject::sphere();
+        let o = Object::sphere();
+        let s = SimpleObject::from_object(&o).unwrap();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., -2_f64.sqrt() / 2., -2_f64.sqrt() / 2.);
         let normal_vector = Tuple::vector(0., 0., -1.);
         let light = Light::point_light(Tuple::point(0., 10., -10.), Color::new(1., 1., 1.));
-        let result = lighting(m, o, light, position, eye_vector, normal_vector, false);
+        let result = lighting(m, s, light, position, eye_vector, normal_vector, false);
         assert_eq!(result, Color::new(1.6364, 1.6364, 1.6364));
     }
 
     #[test]
     fn lighting_with_the_light_behind_the_surface() {
         let m = Material::new();
-        let o = SimpleObject::sphere();
+        let o = Object::sphere();
+        let s = SimpleObject::from_object(&o).unwrap();
         let position = Tuple::point(0., 0., 0.);
         let eye_vector = Tuple::vector(0., 0., -1.);
         let normal_vector = Tuple::vector(0., 0., -1.);
         let light = Light::point_light(Tuple::point(0., 0., 10.), Color::new(1., 1., 1.));
-        let result = lighting(m, o, light, position, eye_vector, normal_vector, false);
+        let result = lighting(m, s, light, position, eye_vector, normal_vector, false);
         assert_eq!(result, Color::new(0.1, 0.1, 0.1));
     }
 
     #[test]
     fn lighting_with_the_surface_in_shadow() {
         let m = Material::new();
-        let o = SimpleObject::sphere();
+        let o = Object::sphere();
         let eye_vector = Tuple::vector(0., 0., -1.);
+        let s = SimpleObject::from_object(&o).unwrap();
         let position = Tuple::point(0., 0., 0.);
         let normal_vector = Tuple::vector(0., 0., -1.);
         let light = Light::point_light(Tuple::point(0., 0., -10.), Color::new(1., 1., 1.));
         let in_shadow = true;
-        let result = lighting(m, o, light, position, eye_vector, normal_vector, in_shadow);
+        let result = lighting(m, s, light, position, eye_vector, normal_vector, in_shadow);
         assert_eq!(result, Color::new(0.1, 0.1, 0.1));
     }
 

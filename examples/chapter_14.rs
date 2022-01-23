@@ -8,7 +8,7 @@ use ray_tracer::{
     math::tuple::Tuple,
     shape::cone::Cone,
     shape::cylinder::Cylinder,
-    shape::{Object, Shape, SimpleObject},
+    shape::{Object, Shape},
     world::World,
 };
 mod misc;
@@ -161,12 +161,14 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     /* ----------------------------- */
 
     /* White background */
-    let mut p = SimpleObject::plane();
+    let mut p = Object::plane();
     p.transform = Matrix4::translation(0., 0., 100.) * Matrix4::rotation_x(1.5708);
-    p.material.color = Color::white();
-    p.material.ambient = 1.;
-    p.material.diffuse = 0.;
-    p.material.specular = 0.;
+    let mut material = Material::new();
+    material.color = Color::white();
+    material.ambient = 1.;
+    material.diffuse = 0.;
+    material.specular = 0.;
+    p.set_material(material);
     world.add_object(p);
 
     let mut wacky_object = wacky();
@@ -180,7 +182,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     material.specular = 0.7;
     material.shininess = 20.;
     wacky_object.set_material(material);
-    world.add_group(wacky_object);
+    world.add_object(wacky_object);
 
     let mut wacky_object = wacky();
     wacky_object.transform = Matrix4::rotation_y(0.1745);
@@ -191,7 +193,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     material.specular = 0.7;
     material.shininess = 20.;
     wacky_object.set_material(material);
-    world.add_group(wacky_object);
+    world.add_object(wacky_object);
 
     let mut wacky_object = wacky();
     wacky_object.transform = Matrix4::translation(2.8, 0., 0.)
@@ -204,7 +206,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     material.specular = 0.7;
     material.shininess = 20.;
     wacky_object.set_material(material);
-    world.add_group(wacky_object);
+    world.add_object(wacky_object);
 
     /* ----------------------------- */
 
