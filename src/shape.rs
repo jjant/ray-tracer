@@ -20,8 +20,10 @@ use plane::Plane;
 use sphere::Sphere;
 use triangle::Triangle;
 
-#[derive(Debug)]
-#[cfg_attr(test, derive(PartialEq))]
+use self::csg::CSG;
+
+#[derive(Clone, Debug, PartialEq)]
+// #[cfg_attr(test, derive(PartialEq))]
 pub struct Object {
     pub transform: Matrix4,
     pub shape: ShapeOrGroup,
@@ -148,8 +150,7 @@ impl Object {
         Self::new(Shape::Cone(Cone::new()))
     }
 }
-#[derive(Debug)]
-#[cfg_attr(test, derive(PartialEq))]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ShapeOrGroup {
     Shape { material: Material, shape: Shape },
     Group(Vec<Object>),
@@ -257,6 +258,7 @@ pub enum Shape {
     Cylinder(Cylinder),
     Cone(Cone),
     Triangle(Triangle),
+    CSG(CSG),
 }
 
 impl Shape {
@@ -297,6 +299,7 @@ impl Shape {
                 }
             }
             Shape::Triangle(triangle) => triangle.bounding_box(),
+            Shape::CSG(_) => todo!(),
         }
     }
 
@@ -312,6 +315,7 @@ impl Shape {
 
                 triangle.local_normal_at(&uvt)
             }
+            Shape::CSG(_) => todo!(),
         }
     }
 
@@ -344,6 +348,7 @@ impl Shape {
                 .into_iter()
                 .map(|uvt| TorUVT::UVT { uvt })
                 .collect(),
+            Shape::CSG(_) => todo!(),
         }
     }
 }
