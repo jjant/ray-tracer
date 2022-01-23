@@ -7,5 +7,21 @@ edition = "2021"
 path = "../ray-tracer"
 
 [[bin]]
+name = "chapter_11"
+path = "./chapter_11.rs"
+
+[[bin]]
+name = "chapter_12"
+path = "./chapter_12.rs"
+
+[[bin]]
+name = "chapter_13"
+path = "./chapter_13.rs"
+
+[[bin]]
+name = "chapter_14"
+path = "./chapter_14.rs"
+
+[[bin]]
 name = "chapter_15"
 path = "./chapter_15.rs"

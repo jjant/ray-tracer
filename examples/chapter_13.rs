@@ -1,4 +1,4 @@
-use crate::{
+use ray_tracer::{
     camera::Camera,
     color::Color,
     light::Light,
@@ -11,6 +11,7 @@ use crate::{
     shape::{Shape, SimpleObject},
     world::World,
 };
+mod misc;
 
 pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut w = World::new();
@@ -187,4 +188,14 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     );
 
     (camera, w)
+}
+
+const ASPECT: f64 = 16. / 9.;
+
+const WIDTH: usize = 400;
+const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
+
+fn main() {
+    let (camera, world) = scene(WIDTH, HEIGHT);
+    misc::run_and_save_scene(module_path!(), camera, world);
 }
