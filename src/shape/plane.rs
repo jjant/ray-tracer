@@ -1,6 +1,6 @@
+use crate::math::tuple::Tuple;
 use crate::misc::EPSILON;
 use crate::ray::Ray;
-use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Plane {}

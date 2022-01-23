@@ -1,6 +1,6 @@
 use std::f64::{INFINITY, NEG_INFINITY};
 
-use crate::{misc::EPSILON, ray::Ray, tuple::Tuple};
+use crate::{math::tuple::Tuple, misc::EPSILON, ray::Ray};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Cylinder {
@@ -103,7 +103,7 @@ impl PartialEq for Cylinder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{misc::approx_equal, ray::Ray, tuple::Tuple};
+    use crate::misc::approx_equal;
 
     #[test]
     fn a_ray_misses_a_cylinder() {

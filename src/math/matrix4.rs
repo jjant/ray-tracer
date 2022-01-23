@@ -1,8 +1,8 @@
 use std::ops::Mul;
 
-use crate::matrix3::Matrix3;
+use super::matrix3::Matrix3;
+use super::tuple::Tuple;
 use crate::misc::{self, approx_equal};
-use crate::tuple::Tuple;
 
 const N: usize = 4;
 type Row = [f64; N];

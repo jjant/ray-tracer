@@ -1,4 +1,4 @@
-use crate::matrix2::Matrix2;
+use super::matrix2::Matrix2;
 use crate::misc::{self, approx_equal};
 
 const N: usize = 3;

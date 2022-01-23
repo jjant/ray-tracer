@@ -2,9 +2,9 @@ use crate::color::Color;
 use crate::intersection::{ComputedIntersection, Intersection};
 use crate::light::Light;
 use crate::material;
+use crate::math::tuple::Tuple;
 use crate::ray::Ray;
 use crate::shape::{Object, SimpleObject};
-use crate::tuple::Tuple;
 
 const DEFAULT_ALLOWED_DEPTH: i32 = 8;
 
@@ -151,7 +151,7 @@ impl World {
 mod tests {
     use super::*;
     use crate::material::Material;
-    use crate::matrix4::Matrix4;
+    use crate::math::matrix4::Matrix4;
     use crate::misc::approx_equal;
     use crate::pattern::Pattern;
     use crate::shape::ShapeOrGroup;
@@ -248,7 +248,7 @@ mod tests {
         let w = World::default();
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let shape = w.get_object(0).unwrap();
-        let i = Intersection::new(4., shape);
+        let i = Intersection::new_(4., shape);
         let comps = i.prepare_computations(r, &[i]);
         let c = w.shade_hit(comps, 5);
 
@@ -262,7 +262,7 @@ mod tests {
 
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
         let shape = w.get_object(1).unwrap();
-        let i = Intersection::new(0.5, shape);
+        let i = Intersection::new_(0.5, shape);
         let comps = i.prepare_computations(r, &[i]);
         let c = w.shade_hit(comps, 5);
 
@@ -350,7 +350,7 @@ mod tests {
         w.add_object(s2);
 
         let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));
-        let i = Intersection::new(4., s2);
+        let i = Intersection::new_(4., s2);
         let comps = i.prepare_computations(r, &[i]);
         let c = w.shade_hit(comps, 5);
 
@@ -367,7 +367,7 @@ mod tests {
         shape.set_material(material);
         let shape = w.get_object(0).unwrap();
 
-        let i = Intersection::new(1., shape);
+        let i = Intersection::new_(1., shape);
         let comps = i.prepare_computations(r, &[i]);
         let color = w.reflected_color(comps, 5);
 
@@ -386,7 +386,7 @@ mod tests {
             Tuple::point(0., 0., -3.),
             Tuple::vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
         );
-        let i = Intersection::new(2_f64.sqrt(), shape);
+        let i = Intersection::new_(2_f64.sqrt(), shape);
         let comps = i.prepare_computations(r, &[i]);
         let color = w.reflected_color(comps, 5);
 
@@ -404,7 +404,7 @@ mod tests {
             Tuple::point(0., 0., -3.),
             Tuple::vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
         );
-        let i = Intersection::new(2_f64.sqrt(), shape);
+        let i = Intersection::new_(2_f64.sqrt(), shape);
         let comps = i.prepare_computations(r, &[i]);
         let color = w.shade_hit(comps, 5);
 
@@ -446,7 +446,7 @@ mod tests {
             Tuple::point(0., 0., -3.),
             Tuple::vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
         );
-        let i = Intersection::new(2_f64.sqrt(), shape);
+        let i = Intersection::new_(2_f64.sqrt(), shape);
         let comps = i.prepare_computations(r, &[i]);
         let color = w.reflected_color(comps, 0);
 
@@ -458,7 +458,7 @@ mod tests {
         let w = World::default();
         let shape = w.get_object(0).unwrap();
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let xs = [Intersection::new(4., shape), Intersection::new(6., shape)];
+        let xs = [Intersection::new_(4., shape), Intersection::new_(6., shape)];
         let comps = xs[0].prepare_computations(r, &xs);
         let c = w.refracted_color(comps, 5);
 
@@ -476,7 +476,7 @@ mod tests {
         let shape = w.get_object(0).unwrap();
 
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let xs = [Intersection::new(4., shape), Intersection::new(6., shape)];
+        let xs = [Intersection::new_(4., shape), Intersection::new_(6., shape)];
         let comps = xs[0].prepare_computations(r, &xs);
         let c = w.refracted_color(comps, 0);
 
@@ -499,8 +499,8 @@ mod tests {
         );
 
         let xs = vec![
-            Intersection::new(-2_f64.sqrt() / 2., shape),
-            Intersection::new(2_f64.sqrt() / 2., shape),
+            Intersection::new_(-2_f64.sqrt() / 2., shape),
+            Intersection::new_(2_f64.sqrt() / 2., shape),
         ];
 
         // NOTE: this time you're inside the sphere, so you need
@@ -531,10 +531,10 @@ mod tests {
 
         let r = Ray::new(Tuple::point(0., 0., 0.1), Tuple::vector(0., 1., 0.));
         let xs = vec![
-            Intersection::new(-0.9899, a),
-            Intersection::new(-0.4899, b),
-            Intersection::new(0.4899, b),
-            Intersection::new(0.9899, a),
+            Intersection::new_(-0.9899, a),
+            Intersection::new_(-0.4899, b),
+            Intersection::new_(0.4899, b),
+            Intersection::new_(0.9899, a),
         ];
         let comps = xs[2].prepare_computations(r, &xs);
         let c = w.refracted_color(comps, 5);
@@ -562,7 +562,7 @@ mod tests {
             Tuple::point(0., 0., -3.),
             Tuple::vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
         );
-        let xs = vec![Intersection::new(2_f64.sqrt(), floor)];
+        let xs = vec![Intersection::new_(2_f64.sqrt(), floor)];
         let comps = xs[0].prepare_computations(r, &xs);
         let color = w.shade_hit(comps, 5);
 
@@ -590,7 +590,7 @@ mod tests {
         *ball.transform_mut() = Matrix4::translation(0., -3.5, -0.5);
         w.add_object(ball);
 
-        let xs = vec![Intersection::new(2_f64.sqrt(), floor)];
+        let xs = vec![Intersection::new_(2_f64.sqrt(), floor)];
         let comps = xs[0].prepare_computations(r, &xs);
         let color = w.shade_hit(comps, 5);
 

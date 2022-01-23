@@ -1,7 +1,8 @@
-use crate::{
-    camera::Camera, color::Color, light::Light, material::Material, matrix4::Matrix4,
-    pattern::Pattern, shape::SimpleObject, transformations, tuple::Tuple, world::World,
+use ray_tracer::{
+    camera::Camera, color::Color, light::Light, material::Material, math::matrix4::Matrix4,
+    math::transformations, math::tuple::Tuple, pattern::Pattern, shape::SimpleObject, world::World,
 };
+mod misc;
 
 /// Scene by Manoël Trapier
 /// https://github.com/Godzil/DoRayMe/blob/45f5f8098e50ce746d4d4d130cffea1b9f98174f/tests/ch12_test.cpp
@@ -200,4 +201,14 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     );
 
     (camera, world)
+}
+
+const ASPECT: f64 = 16. / 9.;
+
+const WIDTH: usize = 400;
+const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
+
+fn main() {
+    let (camera, world) = scene(WIDTH, HEIGHT);
+    misc::run_and_save_scene(module_path!(), camera, world);
 }

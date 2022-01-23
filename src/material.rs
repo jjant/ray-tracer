@@ -1,9 +1,9 @@
 use crate::color::Color;
 use crate::light::Light;
+use crate::math::tuple::Tuple;
 use crate::misc::approx_equal;
 use crate::pattern::Pattern;
 use crate::shape::SimpleObject;
-use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Material {
@@ -107,9 +107,7 @@ pub fn lighting(
 }
 #[cfg(test)]
 mod tests {
-    use crate::light::Light;
     use crate::misc::approx_equal;
-    use crate::tuple::Tuple;
 
     use super::*;
 
