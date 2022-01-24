@@ -11,7 +11,10 @@ use ray_tracer::{
     world::World,
 };
 mod misc;
-use std::f64::{self, consts::FRAC_PI_2};
+use std::f64::{
+    self,
+    consts::{FRAC_PI_2, PI},
+};
 
 pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut world = World::new();
@@ -158,34 +161,40 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
 
     /* ----------------------------- */
 
-    //  Group grp = Group();
-    //  int i;
-    // #define SLICE_NUM (12)
-    //  for(i = 0; i < SLICE_NUM; i++)
-    //  {
-    //      Cube *c = new Cube();
-
-    //      c->setTransform(rotationY((2*M_PI / SLICE_NUM) * i) * scaling(0.1, 1.1, 0.7) * translation(0, 0, 0.9));
-    //      c->dropShadow = false;
-    //      grp.addObject(c);
-    //  }
+    let mut group = vec![];
+    let slice_num = 12;
+    for i in 0..slice_num {
+        let mut c = Object::cube();
+        c.transform = Matrix4::rotation_y((2. * PI / slice_num as f64) * i as f64)
+            * Matrix4::scaling(0.1, 1.1, 0.7)
+            * Matrix4::translation(0., 0., 0.9);
+        //  c->dropShadow = false;
+        group.push(c);
+    }
+    let mut group = Object::group(group);
 
     //  grp.materialSet = true;
     //  grp.dropShadow = false;
-    //  grp.material.ambient = 0;
-    //  grp.material.diffuse = 0.1;
-    //  grp.material.specular = 0;
-    //  grp.material.transparency = 1;
-    //  grp.material.reflective = 1;
-    //  grp.material.refractiveIndex = 1;
+    let mut material = Material::new();
+    material.ambient = 0.;
+    material.diffuse = 0.1;
+    material.specular = 0.;
+    material.transparency = 1.;
+    material.reflective = 1.;
+    material.refractive_index = 1.;
+    group.set_material(material);
 
-    //  Sphere ballSp = Sphere();
-    //  ballSp.materialSet = true;
-    //  ballSp.material.colour = Colour(0.7, 0.2, 0.1);
-    //  CSG ballLeaf = CSG(CSG::INTERSECTION, &grp, &ballSp);
+    let mut ball_sp = Object::sphere();
+    // ball_sp.materialSet = true;
+    let mut material = Material::new();
+    material.color = Color::new(0.7, 0.2, 0.1);
+    ball_sp.set_material(material);
 
-    //  ballLeaf.setTransform(translation(-4, 1, -0.1) *  rotationY(-0.35) * rotationZ(0.1));
-    //  w.addObject(&ballLeaf);
+    let mut ball_leaf = Object::intersection(group, ball_sp);
+    ball_leaf.transform =
+        Matrix4::translation(-4., 1., -0.1) * Matrix4::rotation_y(-0.35) * Matrix4::rotation_z(0.1);
+
+    world.add_object(ball_leaf);
 
     /* ----------------------------- */
     let mut camera = Camera::new(width as i32, height as i32, FRAC_PI_2);
@@ -200,7 +209,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
 
 const ASPECT: f64 = 16. / 9.;
 
-const WIDTH: usize = 2000;
+const WIDTH: usize = 600;
 const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
 fn main() {

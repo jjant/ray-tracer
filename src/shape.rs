@@ -93,14 +93,15 @@ impl Object {
         let intersects_box = bb.intersect(ray);
 
         if intersects_box {
+            let local_ray = ray.transform(self.transform.inverse().unwrap());
+
             if let ShapeOrGroup::Shape {
                 shape: Shape::CSG(csg),
                 ..
             } = &self.shape
             {
-                csg.intersect(ray)
+                csg.local_intersect(local_ray)
             } else {
-                let local_ray = ray.transform(self.transform.inverse().unwrap());
                 self.local_intersect(local_ray)
             }
         } else {

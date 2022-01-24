@@ -30,9 +30,9 @@ impl CSG {
         Self::new(CsgOp::Difference, left, right)
     }
 
-    pub(crate) fn intersect(&self, ray: Ray) -> Vec<Intersection> {
-        let left_intersections = self.left.intersect(ray);
-        let right_intersections = self.right.intersect(ray);
+    pub(crate) fn local_intersect(&self, local_ray: Ray) -> Vec<Intersection> {
+        let left_intersections = self.left.intersect(local_ray);
+        let right_intersections = self.right.intersect(local_ray);
 
         let mut xs = left_intersections
             .into_iter()
