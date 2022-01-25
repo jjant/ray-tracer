@@ -1,8 +1,8 @@
 use crate::color::Color;
 
 pub struct Canvas {
-    pub width: usize,
-    pub height: usize,
+    width: usize,
+    height: usize,
     pixels: Vec<Color>,
 }
 
@@ -24,6 +24,14 @@ impl Canvas {
         if let Some(index) = self.get_index(x, y) {
             self.pixels[index] = color;
         }
+    }
+
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.height
     }
 
     fn get_index(&self, x: i32, y: i32) -> Option<usize> {

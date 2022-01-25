@@ -10,10 +10,10 @@ pub(crate) enum TorUVT {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub(crate) struct Intersection<'a> {
+pub struct Intersection<'a> {
     pub t: f64,
     uv: Option<(f64, f64)>,
-    pub object: SimpleObject<'a>,
+    pub(crate) object: SimpleObject<'a>,
 }
 
 impl<'a> Intersection<'a> {
@@ -41,7 +41,7 @@ impl<'a> Intersection<'a> {
             .min_by(|i1, i2| i1.t.partial_cmp(&i2.t).unwrap())
     }
 
-    pub fn prepare_computations(
+    pub(crate) fn prepare_computations(
         &self,
         ray: Ray,
         all_intersections: &[Intersection],
@@ -189,7 +189,7 @@ mod tests {
     use super::*;
 
     impl<'a> Intersection<'a> {
-        pub fn new_(t: f64, object: SimpleObject<'a>) -> Self {
+        pub(crate) fn new_(t: f64, object: SimpleObject<'a>) -> Self {
             Self::new(&TorUVT::JustT { t }, object)
         }
     }

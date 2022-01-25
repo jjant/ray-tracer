@@ -83,9 +83,7 @@ impl Object {
         }
     }
 
-    /// The maths assume the sphere is located in the origin,
-    /// and it handles the general case by "unmoving" the ray with the opposite transform.
-    pub(crate) fn intersect(&self, ray: Ray) -> Vec<Intersection> {
+    pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         let bb = self.bounding_box();
         // This is a bit different from the book, it looks like?
         // They seem to do the AABB check in the local intersect function

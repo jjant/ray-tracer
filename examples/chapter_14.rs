@@ -1,3 +1,4 @@
+use examples;
 use ray_tracer::{
     camera::Camera,
     color::Color,
@@ -11,7 +12,6 @@ use ray_tracer::{
     shape::{Object, Shape},
     world::World,
 };
-mod misc;
 
 /// Scene by Manoël Trapier
 /// https://github.com/Godzil/DoRayMe/blob/45f5f8098e50ce746d4d4d130cffea1b9f98174f/tests/ch14_test.cpp
@@ -227,5 +227,5 @@ const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
 fn main() {
     let (camera, world) = scene(WIDTH, HEIGHT);
-    misc::run_and_save_scene(module_path!(), camera, world);
+    examples::run_and_save_scene(module_path!(), camera, world);
 }

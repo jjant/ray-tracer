@@ -1,9 +1,9 @@
+use examples;
 use ray_tracer::{
     camera::Camera, color::Color, light::Light, material::Material, math::matrix4::Matrix4,
     math::transformations, math::tuple::Tuple, pattern::Pattern, shape::cylinder::Cylinder,
     shape::Object, shape::Shape, world::World,
 };
-mod misc;
 
 pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut w = World::new();
@@ -213,5 +213,5 @@ const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
 fn main() {
     let (camera, world) = scene(WIDTH, HEIGHT);
-    misc::run_and_save_scene(module_path!(), camera, world);
+    examples::run_and_save_scene(module_path!(), camera, world);
 }

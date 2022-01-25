@@ -1,3 +1,4 @@
+use examples;
 use ray_tracer::{
     camera::Camera,
     color::Color,
@@ -10,7 +11,6 @@ use ray_tracer::{
     shape::{cylinder::Cylinder, Object, Shape},
     world::World,
 };
-mod misc;
 use std::f64::{
     self,
     consts::{FRAC_PI_2, PI},
@@ -203,5 +203,5 @@ const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
 fn main() {
     let (camera, world) = scene(WIDTH, HEIGHT);
-    misc::run_and_save_scene(module_path!(), camera, world);
+    examples::run_and_save_scene(module_path!(), camera, world);
 }
