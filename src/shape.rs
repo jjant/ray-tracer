@@ -191,7 +191,7 @@ pub enum ShapeOrGroup {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct SimpleObject<'a> {
+pub struct SimpleObject<'a> {
     pub material: Material,
     pub transform: Matrix4,
     pub shape: &'a Shape,

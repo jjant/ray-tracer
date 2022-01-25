@@ -51,7 +51,7 @@ impl PartialEq for Material {
     }
 }
 
-pub(crate) fn lighting(
+pub fn lighting(
     material: Material,
     object: SimpleObject,
     light: Light,

@@ -13,7 +13,7 @@ pub(crate) enum TorUVT {
 pub struct Intersection<'a> {
     pub t: f64,
     uv: Option<(f64, f64)>,
-    pub(crate) object: SimpleObject<'a>,
+    pub object: SimpleObject<'a>,
 }
 
 impl<'a> Intersection<'a> {
