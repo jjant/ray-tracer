@@ -61,8 +61,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     material.color = Color::new(1., 0., 0.);
     c1.set_material(material);
     c1.transform = Matrix4::scaling(0.4, 1., 0.4);
-    // TODO: check this out?
-    // c1.materialSet = true;
 
     let mut c2 = Cylinder::new();
     c2.minimum = -2.;
@@ -73,7 +71,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     material.color = Color::new(0., 1., 0.);
     c2.set_material(material);
     c2.transform = Matrix4::rotation_x(FRAC_PI_2) * Matrix4::scaling(0.4, 1., 0.4);
-    // c2.materialSet = true;
 
     let leaf1 = Object::union(c1, c2);
 
@@ -86,12 +83,10 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     material.color = Color::new(0., 0., 1.);
     c3.set_material(material);
     c3.transform = Matrix4::rotation_z(FRAC_PI_2) * Matrix4::scaling(0.4, 1., 0.4);
-    // c3.materialSet = true;
 
     let leaf2 = Object::union(leaf1, c3);
 
     let mut cb = Object::cube();
-    // cb.materialSet = true;
     let mut material = Material::new();
     material.reflective = 0.5;
     material.color = Color::new(0.3, 0.3, 0.3);
@@ -103,7 +98,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
 
     let mut sp = Object::sphere();
     sp.transform = Matrix4::scaling(1.35, 1.35, 1.35);
-    // sp.materialSet = true;
     let mut material = Material::new();
     material.color = Color::new(0., 0., 0.);
     material.ambient = 0.;
@@ -125,7 +119,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     sp1.minimum = -2.;
     sp1.maximum = 2.;
     sp1.closed = true;
-    // sp1.materialSet = true;
     let mut sp1 = Object::new(Shape::Cylinder(sp1));
     let mut material = Material::new();
     material.color = Color::new(1., 0., 0.);
@@ -135,7 +128,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     sp2.minimum = -2.;
     sp2.maximum = 2.;
     sp2.closed = true;
-    // sp2.materialSet = true;
     let mut sp2 = Object::new(Shape::Cylinder(sp2));
     sp2.transform = Matrix4::rotation_x(FRAC_PI_2);
     let mut material = Material::new();
@@ -147,7 +139,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     sp3.maximum = 2.;
     sp3.closed = true;
     let mut sp3 = Object::new(Shape::Cylinder(sp3));
-    // sp3.materialSet = true;
     sp3.transform = Matrix4::rotation_z(FRAC_PI_2);
     let mut material = Material::new();
     material.color = Color::new(0., 0., 1.);
@@ -173,7 +164,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     }
     let mut group = Object::group(group);
 
-    //  grp.materialSet = true;
     //  grp.dropShadow = false;
     let mut material = Material::new();
     material.ambient = 0.;
@@ -185,7 +175,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     group.set_material(material);
 
     let mut ball_sp = Object::sphere();
-    // ball_sp.materialSet = true;
     let mut material = Material::new();
     material.color = Color::new(0.7, 0.2, 0.1);
     ball_sp.set_material(material);
