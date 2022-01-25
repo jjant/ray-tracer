@@ -20,7 +20,7 @@ use plane::Plane;
 use sphere::Sphere;
 use triangle::Triangle;
 
-use self::csg::CSG;
+use self::csg::Csg;
 
 #[derive(Clone, Debug, PartialEq)]
 // #[cfg_attr(test, derive(PartialEq))]
@@ -34,7 +34,7 @@ impl Object {
         match &self.shape {
             ShapeOrGroup::Group(group) => group.iter().any(|o| o.includes(object)),
             ShapeOrGroup::Shape {
-                shape: Shape::CSG(csg),
+                shape: Shape::Csg(csg),
                 ..
             } => csg.includes(object),
             ShapeOrGroup::Shape { .. } => {
@@ -104,7 +104,7 @@ impl Object {
     fn local_intersect<'a>(&'a self, local_ray: Ray) -> Vec<Intersection<'a>> {
         match self.shape {
             ShapeOrGroup::Shape {
-                shape: Shape::CSG(ref csg),
+                shape: Shape::Csg(ref csg),
                 ..
             } => csg
                 .local_intersect(local_ray)
@@ -174,15 +174,15 @@ impl Object {
     }
 
     pub fn union(left: Object, right: Object) -> Self {
-        Self::new(Shape::CSG(CSG::union(left, right)))
+        Self::new(Shape::Csg(Csg::union(left, right)))
     }
 
     pub fn intersection(left: Object, right: Object) -> Self {
-        Self::new(Shape::CSG(CSG::intersection(left, right)))
+        Self::new(Shape::Csg(Csg::intersection(left, right)))
     }
 
     pub fn difference(left: Object, right: Object) -> Self {
-        Self::new(Shape::CSG(CSG::difference(left, right)))
+        Self::new(Shape::Csg(Csg::difference(left, right)))
     }
 }
 
@@ -294,7 +294,7 @@ pub enum Shape {
     Cylinder(Cylinder),
     Cone(Cone),
     Triangle(Triangle),
-    CSG(CSG),
+    Csg(Csg),
 }
 
 impl Shape {
@@ -335,7 +335,7 @@ impl Shape {
                 }
             }
             Shape::Triangle(triangle) => triangle.bounding_box(),
-            Shape::CSG(csg) => {
+            Shape::Csg(csg) => {
                 let left = csg.left.bounding_box();
                 let right = csg.right.bounding_box();
 
@@ -356,7 +356,7 @@ impl Shape {
 
                 triangle.local_normal_at(&uvt)
             }
-            Shape::CSG(_) => unreachable!(),
+            Shape::Csg(_) => unreachable!(),
         }
     }
 
@@ -389,7 +389,7 @@ impl Shape {
                 .into_iter()
                 .map(|uvt| TorUVT::UVT { uvt })
                 .collect(),
-            Shape::CSG(_) => unreachable!(),
+            Shape::Csg(_) => unreachable!(),
         }
     }
 }

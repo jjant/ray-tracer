@@ -3,13 +3,13 @@ use crate::{intersection::Intersection, ray::Ray};
 use super::{Object, SimpleObject};
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct CSG {
+pub struct Csg {
     op: CsgOp,
     pub(crate) left: Box<Object>,
     pub(crate) right: Box<Object>,
 }
 
-impl CSG {
+impl Csg {
     fn new(op: CsgOp, left: Object, right: Object) -> Self {
         Self {
             op,
@@ -105,7 +105,7 @@ mod tests {
     fn csg_is_created_with_an_operation_and_two_shapes() {
         let s1 = Object::sphere();
         let s2 = Object::cube();
-        let c = CSG::union(s1.clone(), s2.clone());
+        let c = Csg::union(s1.clone(), s2.clone());
 
         let s11: &Object = &c.left;
         assert_eq!(s11, &s1);
@@ -154,7 +154,7 @@ mod tests {
         let shape2 = SimpleObject::from_object(&s2).unwrap();
 
         for (op, x0, x1) in examples {
-            let c = CSG::new(op, s1.clone(), s2.clone());
+            let c = Csg::new(op, s1.clone(), s2.clone());
             let xs = vec![
                 Intersection::new_(1., shape1),
                 Intersection::new_(2., shape2),
