@@ -10,14 +10,14 @@ pub(crate) enum TorUVT {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct Intersection {
+pub(crate) struct Intersection<'a> {
     pub t: f64,
     uv: Option<(f64, f64)>,
-    pub object: SimpleObject,
+    pub object: SimpleObject<'a>,
 }
 
-impl Intersection {
-    pub(crate) fn new(t_or_uvt: &TorUVT, object: SimpleObject) -> Self {
+impl<'a> Intersection<'a> {
+    pub(crate) fn new(t_or_uvt: &TorUVT, object: SimpleObject<'a>) -> Self {
         match t_or_uvt {
             &TorUVT::JustT { t } => Self {
                 t,
@@ -47,13 +47,13 @@ impl Intersection {
         all_intersections: &[Intersection],
     ) -> ComputedIntersection {
         let object = self.object;
-        let t = self.t;
+        let _t = self.t;
         let point = ray.position(self.t);
         let eye_vector = -ray.direction;
 
-        let tentative_normal = self.object.normal_at(self, point);
+        let tentative_normal = self.object.normal_at(*self, point);
 
-        let (inside, normal_vector) = if tentative_normal.dot(eye_vector) < 0. {
+        let (_inside, normal_vector) = if tentative_normal.dot(eye_vector) < 0. {
             (true, -tentative_normal)
         } else {
             (false, tentative_normal)
@@ -66,29 +66,38 @@ impl Intersection {
         let (n1, n2) = self.compute_refractive_indices(all_intersections);
 
         ComputedIntersection {
-            object,
-            t,
-            point,
             eye_vector,
             normal_vector,
             reflect_vector,
-            inside,
             over_point,
             under_point,
             n1: n1,
             n2: n2,
+            object,
+            #[cfg(test)]
+            inside: _inside,
+            #[cfg(test)]
+            t: _t,
+            #[cfg(test)]
+            point,
         }
     }
 
-    fn compute_refractive_indices(&self, all_intersections: &[Intersection]) -> (f64, f64) {
-        let mut containers: Vec<SimpleObject> = vec![];
+    fn compute_refractive_indices<'b>(
+        &'a self,
+        all_intersections: &[Intersection<'a>],
+    ) -> (f64, f64)
+    where
+        'a: 'b,
+    {
+        let mut containers: Vec<SimpleObject<'b>> = vec![];
         let mut n1 = 1.0;
         let mut n2 = 1.0;
 
-        for i in all_intersections {
+        for &i in all_intersections {
             // Bad phrasing by the author, check this:
             // https://forum.raytracerchallenge.com/post/103/thread
-            let is_hit = i == self;
+            let is_hit = i == *self;
 
             if is_hit {
                 if let Some(last) = containers.last() {
@@ -103,7 +112,7 @@ impl Intersection {
             if let Some(index) = position {
                 containers.remove(index);
             } else {
-                containers.push(i.object)
+                containers.push(i.object);
             }
 
             if is_hit {
@@ -124,28 +133,31 @@ impl Intersection {
     }
 }
 
-impl PartialEq for Intersection {
+impl<'a> PartialEq for Intersection<'a> {
     fn eq(&self, other: &Self) -> bool {
         approx_equal(self.t, other.t) && self.object == other.object
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct ComputedIntersection {
-    pub t: f64,
-    pub object: SimpleObject,
-    pub point: Tuple,
+#[derive(Copy, Clone, Debug)]
+pub(crate) struct ComputedIntersection<'a> {
+    pub object: SimpleObject<'a>,
     pub eye_vector: Tuple,
     pub normal_vector: Tuple,
     pub reflect_vector: Tuple,
-    pub inside: bool,
     pub over_point: Tuple,
     pub under_point: Tuple,
     pub n1: f64,
     pub n2: f64,
+    #[cfg(test)]
+    t: f64,
+    #[cfg(test)]
+    point: Tuple,
+    #[cfg(test)]
+    inside: bool,
 }
 
-impl ComputedIntersection {
+impl<'a> ComputedIntersection<'a> {
     pub fn schlick(&self) -> f64 {
         // find the cosine of the angle between the eye and normal vectors
         let mut cos = self.eye_vector.dot(self.normal_vector);
@@ -172,19 +184,20 @@ impl ComputedIntersection {
 
 #[cfg(test)]
 mod tests {
-    use crate::math::matrix4::Matrix4;
+    use crate::{material::Material, math::matrix4::Matrix4, shape::Object};
 
     use super::*;
 
-    impl Intersection {
-        pub fn new_(t: f64, object: SimpleObject) -> Self {
+    impl<'a> Intersection<'a> {
+        pub fn new_(t: f64, object: SimpleObject<'a>) -> Self {
             Self::new(&TorUVT::JustT { t }, object)
         }
     }
 
     #[test]
     fn an_intersection_encapsulates_t_and_object() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new(&TorUVT::JustT { t: 3.5 }, s);
 
         assert!(approx_equal(i.t, 3.5));
@@ -193,10 +206,11 @@ mod tests {
 
     #[test]
     fn the_hit_when_all_intersections_have_positive_t() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i1 = Intersection::new(&TorUVT::JustT { t: 1. }, s);
         let i2 = Intersection::new(&TorUVT::JustT { t: 2. }, s);
-        let xs = vec![i2, i1];
+        let xs = [i2, i1];
         let i = Intersection::hit(&xs);
 
         assert_eq!(i, Some(&i1));
@@ -204,10 +218,11 @@ mod tests {
 
     #[test]
     fn the_hit_when_some_intersections_have_negative_t() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i1 = Intersection::new(&TorUVT::JustT { t: -1. }, s);
         let i2 = Intersection::new(&TorUVT::JustT { t: 1. }, s);
-        let xs = vec![i2, i1];
+        let xs = [i2, i1];
         let i = Intersection::hit(&xs);
 
         assert_eq!(i, Some(&i2));
@@ -215,10 +230,11 @@ mod tests {
 
     #[test]
     fn the_hit_when_all_intersections_have_negative_t() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i1 = Intersection::new(&TorUVT::JustT { t: -2. }, s);
         let i2 = Intersection::new(&TorUVT::JustT { t: -1. }, s);
-        let xs = vec![i2, i1];
+        let xs = [i2, i1];
         let i = Intersection::hit(&xs);
 
         assert!(i.is_none());
@@ -226,12 +242,13 @@ mod tests {
 
     #[test]
     fn the_hit_is_always_the_lowest_nonnegative_intersection() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i1 = Intersection::new(&TorUVT::JustT { t: 5. }, s);
         let i2 = Intersection::new(&TorUVT::JustT { t: 7. }, s);
         let i3 = Intersection::new(&TorUVT::JustT { t: -3. }, s);
         let i4 = Intersection::new(&TorUVT::JustT { t: 2. }, s);
-        let xs = vec![i1, i2, i3, i4];
+        let xs = [i1, i2, i3, i4];
         let i = Intersection::hit(&xs);
 
         assert_eq!(i, Some(&i4));
@@ -240,7 +257,8 @@ mod tests {
     #[test]
     fn precomputing_the_state_of_an_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let shape = SimpleObject::sphere();
+        let object = Object::sphere();
+        let shape = SimpleObject::from_object(&object).unwrap();
         let intersection = Intersection::new(&TorUVT::JustT { t: 4. }, shape);
 
         let comps = intersection.prepare_computations(r, &[intersection]);
@@ -255,7 +273,8 @@ mod tests {
     #[test]
     fn the_hit_when_an_intersection_occurs_on_the_outside() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let shape = SimpleObject::sphere();
+        let object = Object::sphere();
+        let shape = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new(&TorUVT::JustT { t: 4. }, shape);
         let comps = i.prepare_computations(r, &[i]);
 
@@ -265,7 +284,8 @@ mod tests {
     #[test]
     fn the_hit_when_an_intersection_occurs_on_the_inside() {
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
-        let shape = SimpleObject::sphere();
+        let object = Object::sphere();
+        let shape = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new(&TorUVT::JustT { t: 1. }, shape);
         let comps = i.prepare_computations(r, &[i]);
 
@@ -279,8 +299,9 @@ mod tests {
     #[test]
     fn the_hit_should_offset_the_point() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut shape = SimpleObject::sphere();
-        *shape.transform_mut() = Matrix4::translation(0., 0., 1.);
+        let mut object = Object::sphere();
+        object.transform = Matrix4::translation(0., 0., 1.);
+        let shape = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new(&TorUVT::JustT { t: 5. }, shape);
         let comps = i.prepare_computations(r, &[i]);
 
@@ -290,7 +311,8 @@ mod tests {
 
     #[test]
     fn precomputing_the_reflection_vector() {
-        let shape = SimpleObject::plane();
+        let object = Object::plane();
+        let shape = SimpleObject::from_object(&object).unwrap();
         let r = Ray::new(
             Tuple::point(0., 1., -1.),
             Tuple::vector(0., -2_f64.sqrt() / 2_f64, 2_f64.sqrt() / 2_f64),
@@ -306,32 +328,79 @@ mod tests {
 
     #[test]
     fn finding_n1_and_n2_at_various_intersections() {
-        let mut a = SimpleObject::glass_sphere();
-        *a.transform_mut() = Matrix4::scaling(2., 2., 2.);
-        a.material_mut().refractive_index = 1.5;
+        let mut a = Object::glass_sphere();
+        a.transform = Matrix4::scaling(2., 2., 2.);
+        let mut material = Material::new();
+        material.refractive_index = 1.5;
+        a.set_material(material);
 
-        let mut b = SimpleObject::glass_sphere();
-        *b.transform_mut() = Matrix4::translation(0., 0., -0.25);
-        b.material_mut().refractive_index = 2.0;
+        let mut b = Object::glass_sphere();
+        b.transform = Matrix4::translation(0., 0., -0.25);
+        let mut material = Material::new();
+        material.refractive_index = 2.0;
+        b.set_material(material);
 
-        let mut c = SimpleObject::glass_sphere();
-        *c.transform_mut() = Matrix4::translation(0., 0., 0.25);
-        c.material_mut().refractive_index = 2.5;
+        let mut c = Object::glass_sphere();
+        c.transform = Matrix4::translation(0., 0., 0.25);
+        let mut material = Material::new();
+        material.refractive_index = 2.5;
+        c.set_material(material);
 
         let ray = Ray::new(Tuple::point(0., 0., -4.), Tuple::vector(0., 0., 1.));
-        let intersections_with_expected_indices = vec![
-            (Intersection::new(&TorUVT::JustT { t: 2.0 }, a), 1.0, 1.5),
-            (Intersection::new(&TorUVT::JustT { t: 2.75 }, b), 1.5, 2.0),
-            (Intersection::new(&TorUVT::JustT { t: 3.25 }, c), 2.0, 2.5),
-            (Intersection::new(&TorUVT::JustT { t: 4.75 }, b), 2.5, 2.5),
-            (Intersection::new(&TorUVT::JustT { t: 5.25 }, c), 2.5, 1.5),
-            (Intersection::new(&TorUVT::JustT { t: 6.0 }, a), 1.5, 1.0),
+        let intersections_with_expected_indices = [
+            (
+                Intersection::new(
+                    &TorUVT::JustT { t: 2.0 },
+                    SimpleObject::from_object(&a).unwrap(),
+                ),
+                1.0,
+                1.5,
+            ),
+            (
+                Intersection::new(
+                    &TorUVT::JustT { t: 2.75 },
+                    SimpleObject::from_object(&b).unwrap(),
+                ),
+                1.5,
+                2.0,
+            ),
+            (
+                Intersection::new(
+                    &TorUVT::JustT { t: 3.25 },
+                    SimpleObject::from_object(&c).unwrap(),
+                ),
+                2.0,
+                2.5,
+            ),
+            (
+                Intersection::new(
+                    &TorUVT::JustT { t: 4.75 },
+                    SimpleObject::from_object(&b).unwrap(),
+                ),
+                2.5,
+                2.5,
+            ),
+            (
+                Intersection::new(
+                    &TorUVT::JustT { t: 5.25 },
+                    SimpleObject::from_object(&c).unwrap(),
+                ),
+                2.5,
+                1.5,
+            ),
+            (
+                Intersection::new(
+                    &TorUVT::JustT { t: 6.0 },
+                    SimpleObject::from_object(&a).unwrap(),
+                ),
+                1.5,
+                1.0,
+            ),
         ];
 
         let xs = intersections_with_expected_indices
-            .iter()
+            .into_iter()
             .map(|(i, _, _)| i)
-            .copied()
             .collect::<Vec<_>>();
 
         let computed_intersections = intersections_with_expected_indices
@@ -348,12 +417,11 @@ mod tests {
     #[test]
     fn the_under_point_is_offset_below_the_surface() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut shape = SimpleObject::glass_sphere();
-        *shape.transform_mut() = Matrix4::translation(0., 0., 1.);
-
+        let mut object = Object::glass_sphere();
+        object.transform = Matrix4::translation(0., 0., 1.);
+        let shape = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new(&TorUVT::JustT { t: 5. }, shape);
-        let xs = [i];
-        let comps = i.prepare_computations(r, &xs);
+        let comps = i.prepare_computations(r, &[i]);
 
         assert!(comps.under_point.z > EPSILON / 2.);
         assert!(comps.point.z < comps.under_point.z);
@@ -361,12 +429,13 @@ mod tests {
 
     #[test]
     fn the_schlick_approximation_under_total_internal_reflection() {
-        let shape = SimpleObject::glass_sphere();
+        let object = Object::glass_sphere();
         let r = Ray::new(
             Tuple::point(0., 0., 2_f64.sqrt() / 2.),
             Tuple::vector(0., 1., 0.),
         );
-        let xs = vec![
+        let shape = SimpleObject::from_object(&object).unwrap();
+        let xs = [
             Intersection::new(
                 &TorUVT::JustT {
                     t: -2_f64.sqrt() / 2.,
@@ -388,9 +457,10 @@ mod tests {
 
     #[test]
     fn the_schlick_approximation_with_a_perpendicular_viewing_angle() {
-        let shape = SimpleObject::glass_sphere();
+        let object = Object::glass_sphere();
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 1., 0.));
-        let xs = vec![
+        let shape = SimpleObject::from_object(&object).unwrap();
+        let xs = [
             Intersection::new(&TorUVT::JustT { t: -1. }, shape),
             Intersection::new(&TorUVT::JustT { t: 1. }, shape),
         ];
@@ -402,9 +472,10 @@ mod tests {
 
     #[test]
     fn the_schlick_approximation_with_small_angle_and_n2_greater_than_n1() {
-        let shape = SimpleObject::glass_sphere();
+        let object = Object::glass_sphere();
+        let shape = SimpleObject::from_object(&object).unwrap();
         let r = Ray::new(Tuple::point(0., 0.99, -2.), Tuple::vector(0., 0., 1.));
-        let xs = vec![Intersection::new(&TorUVT::JustT { t: 1.8589 }, shape)];
+        let xs = [Intersection::new(&TorUVT::JustT { t: 1.8589 }, shape)];
         let comps = xs[0].prepare_computations(r, &xs);
         let reflectance = comps.schlick();
 

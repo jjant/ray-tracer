@@ -57,7 +57,7 @@ impl Pattern {
         }
     }
 
-    pub fn pattern_at_object(&self, object: SimpleObject, world_point: Tuple) -> Color {
+    pub(crate) fn pattern_at_object(self, object: SimpleObject, world_point: Tuple) -> Color {
         let object_point = object.transform.inverse().unwrap() * world_point;
         let pattern_point = self.transform.inverse().unwrap() * object_point;
 
@@ -150,7 +150,7 @@ impl CheckeredPattern {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shape::SimpleObject;
+    use crate::shape::{Object, SimpleObject};
 
     impl Pattern {
         pub fn test() -> Self {
@@ -218,35 +218,38 @@ mod tests {
 
     #[test]
     fn stripes_with_an_object_transformation() {
-        let mut object = SimpleObject::sphere();
-        *object.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let mut object = Object::sphere();
+        object.transform = Matrix4::scaling(2., 2., 2.);
+        let s = SimpleObject::from_object(&object).unwrap();
 
         let pattern = Pattern::striped(Color::white(), Color::black());
-        let c = pattern.pattern_at_object(object, Tuple::point(1.5, 0., 0.));
+        let c = pattern.pattern_at_object(s, Tuple::point(1.5, 0., 0.));
 
         assert_eq!(c, Color::white());
     }
 
     #[test]
     fn stripes_with_a_pattern_transformation() {
-        let object = SimpleObject::sphere();
+        let object = Object::sphere();
         let mut pattern = Pattern::striped(Color::white(), Color::black());
         *pattern.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let s = SimpleObject::from_object(&object).unwrap();
 
-        let c = pattern.pattern_at_object(object, Tuple::point(1.5, 0., 0.));
+        let c = pattern.pattern_at_object(s, Tuple::point(1.5, 0., 0.));
 
         assert_eq!(c, Color::white());
     }
 
     #[test]
     fn stripes_with_both_an_object_and_a_pattern_transformation() {
-        let mut object = SimpleObject::sphere();
-        *object.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let mut object = Object::sphere();
+        object.transform = Matrix4::scaling(2., 2., 2.);
 
         let mut pattern = Pattern::striped(Color::white(), Color::black());
         *pattern.transform_mut() = Matrix4::translation(0.5, 0., 0.);
+        let s = SimpleObject::from_object(&object).unwrap();
 
-        let c = pattern.pattern_at_object(object, Tuple::point(2.5, 0., 0.));
+        let c = pattern.pattern_at_object(s, Tuple::point(2.5, 0., 0.));
 
         assert_eq!(c, Color::white());
     }
@@ -269,9 +272,10 @@ mod tests {
 
     #[test]
     fn a_pattern_with_an_object_transformation() {
-        let mut shape = SimpleObject::sphere();
-        *shape.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let mut object = Object::sphere();
+        object.transform = Matrix4::scaling(2., 2., 2.);
         let pattern = Pattern::test();
+        let shape = SimpleObject::from_object(&object).unwrap();
         let c = pattern.pattern_at_object(shape, Tuple::point(2., 3., 4.));
 
         assert_eq!(c, Color::new(1., 1.5, 2.));
@@ -279,9 +283,10 @@ mod tests {
 
     #[test]
     fn a_pattern_with_a_pattern_transformation() {
-        let shape = SimpleObject::sphere();
+        let object = Object::sphere();
         let mut pattern = Pattern::test();
         *pattern.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let shape = SimpleObject::from_object(&object).unwrap();
         let c = pattern.pattern_at_object(shape, Tuple::point(2., 3., 4.));
 
         assert_eq!(c, Color::new(1., 1.5, 2.));
@@ -289,10 +294,11 @@ mod tests {
 
     #[test]
     fn a_pattern_with_both_an_object_and_a_pattern_transformation() {
-        let mut shape = SimpleObject::sphere();
-        *shape.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let mut object = Object::sphere();
+        object.transform = Matrix4::scaling(2., 2., 2.);
         let mut pattern = Pattern::test();
         *pattern.transform_mut() = Matrix4::translation(0.5, 1., 1.5);
+        let shape = SimpleObject::from_object(&object).unwrap();
 
         let c = pattern.pattern_at_object(shape, Tuple::point(2.5, 3., 3.5));
 

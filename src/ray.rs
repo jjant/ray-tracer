@@ -111,9 +111,9 @@ mod tests {
     #[test]
     fn intersect_sets_the_object_on_the_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let s = SimpleObject::sphere();
-
-        let xs = s.intersect(r);
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
+        let xs = object.intersect(r);
 
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].object, s);
@@ -145,9 +145,9 @@ mod tests {
     #[test]
     fn intersecting_a_scaled_sphere_with_a_ray() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut s = SimpleObject::sphere();
-
-        *s.transform_mut() = Matrix4::scaling(2., 2., 2.);
+        let mut object = Object::sphere();
+        object.transform = Matrix4::scaling(2., 2., 2.);
+        let s = SimpleObject::from_object(&object).unwrap();
 
         let xs = s.intersect(r);
 
@@ -159,9 +159,9 @@ mod tests {
     #[test]
     fn intersecting_a_translated_sphere_with_a_ray() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let mut s = SimpleObject::sphere();
-
-        *s.transform_mut() = Matrix4::translation(5., 0., 0.);
+        let mut object = Object::sphere();
+        object.transform = Matrix4::translation(5., 0., 0.);
+        let s = SimpleObject::from_object(&object).unwrap();
 
         let xs = s.intersect(r);
 

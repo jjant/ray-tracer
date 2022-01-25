@@ -32,38 +32,45 @@ impl Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{intersection::Intersection, shape::SimpleObject};
+    use crate::{
+        intersection::Intersection,
+        shape::{Object, SimpleObject},
+    };
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new_(0., s);
-        let n = s.normal_at(&i, Tuple::point(1., 0., 0.));
+        let n = s.normal_at(i, Tuple::point(1., 0., 0.));
         assert_eq!(n, Tuple::vector(1., 0., 0.));
     }
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_y_axis() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new_(0., s);
-        let n = s.normal_at(&i, Tuple::point(0., 1., 0.));
+        let n = s.normal_at(i, Tuple::point(0., 1., 0.));
         assert_eq!(n, Tuple::vector(0., 1., 0.));
     }
 
     #[test]
     fn the_normal_on_a_sphere_at_a_point_on_the_z_axis() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new_(0., s);
-        let n = s.normal_at(&i, Tuple::point(0., 0., 1.));
+        let n = s.normal_at(i, Tuple::point(0., 0., 1.));
         assert_eq!(n, Tuple::vector(0., 0., 1.));
     }
 
     #[test]
     fn the_normal_on_a_sphere_at_a_nonaxial_point() {
-        let s = SimpleObject::sphere();
+        let object = Object::sphere();
+        let s = SimpleObject::from_object(&object).unwrap();
         let i = Intersection::new_(0., s);
         let n = s.normal_at(
-            &i,
+            i,
             Tuple::point(3_f64.sqrt() / 3., 3_f64.sqrt() / 3., 3_f64.sqrt() / 3.),
         );
         assert_eq!(

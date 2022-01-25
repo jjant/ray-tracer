@@ -99,7 +99,7 @@ mod tests {
     use crate::{
         intersection::{Intersection, TorUVT},
         misc::approx_equal,
-        shape::{Shape, SimpleObject},
+        shape::{Object, Shape, SimpleObject},
     };
 
     use super::*;
@@ -257,10 +257,10 @@ mod tests {
         };
         let r = Ray::new(Tuple::point(-0.2, 0.3, -2.), Tuple::vector(0., 0., 1.));
         let tri = test_smooth_tri();
-        let i = Intersection::new(
-            &TorUVT::UVT { uvt },
-            SimpleObject::new(Shape::Triangle(tri)),
-        );
+        let shape = Shape::Triangle(tri);
+        let object = Object::new(shape);
+        let shape = SimpleObject::from_object(&object).unwrap();
+        let i = Intersection::new(&TorUVT::UVT { uvt }, shape);
         let comps = i.prepare_computations(r, &[i]);
 
         assert_eq!(comps.normal_vector, Tuple::vector(-0.5547, 0.83205, 0.));
