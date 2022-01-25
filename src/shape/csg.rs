@@ -5,8 +5,8 @@ use super::{Object, SimpleObject};
 #[derive(Clone, PartialEq, Debug)]
 pub struct CSG {
     op: CsgOp,
-    left: Box<Object>,
-    right: Box<Object>,
+    pub(crate) left: Box<Object>,
+    pub(crate) right: Box<Object>,
 }
 
 impl CSG {

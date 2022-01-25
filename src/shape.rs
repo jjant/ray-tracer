@@ -95,15 +95,7 @@ impl Object {
         if intersects_box {
             let local_ray = ray.transform(self.transform.inverse().unwrap());
 
-            if let ShapeOrGroup::Shape {
-                shape: Shape::CSG(csg),
-                ..
-            } = &self.shape
-            {
-                csg.local_intersect(local_ray)
-            } else {
-                self.local_intersect(local_ray)
-            }
+            self.local_intersect(local_ray)
         } else {
             vec![]
         }
@@ -111,6 +103,26 @@ impl Object {
 
     fn local_intersect<'a>(&'a self, local_ray: Ray) -> Vec<Intersection<'a>> {
         match self.shape {
+            ShapeOrGroup::Shape {
+                shape: Shape::CSG(ref csg),
+                ..
+            } => csg
+                .local_intersect(local_ray)
+                .into_iter()
+                .map(|mut i| {
+                    i.object.transform = self.transform * i.object.transform;
+                    i
+                })
+                .collect(),
+            ShapeOrGroup::Group(ref group) => group
+                .iter()
+                .flat_map(|object| object.intersect(local_ray))
+                .map(|mut i| {
+                    i.object.transform = self.transform * i.object.transform;
+                    i
+                })
+                .collect(),
+
             ShapeOrGroup::Shape {
                 ref shape,
                 ref material,
@@ -126,15 +138,6 @@ impl Object {
                             shape: &shape,
                         },
                     )
-                })
-                .collect(),
-
-            ShapeOrGroup::Group(ref group) => group
-                .iter()
-                .flat_map(|object| object.intersect(local_ray))
-                .map(|mut i| {
-                    i.object.transform = self.transform * i.object.transform;
-                    i
                 })
                 .collect(),
         }
@@ -332,13 +335,11 @@ impl Shape {
                 }
             }
             Shape::Triangle(triangle) => triangle.bounding_box(),
-            Shape::CSG(_) =>
-            // TODO
-            {
-                BoundingBox {
-                    min: Tuple::point(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY),
-                    max: Tuple::point(f64::INFINITY, f64::INFINITY, f64::INFINITY),
-                }
+            Shape::CSG(csg) => {
+                let left = csg.left.bounding_box();
+                let right = csg.right.bounding_box();
+
+                left.union(&right)
             }
         }
     }
