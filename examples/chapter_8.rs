@@ -12,7 +12,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut floor = Object::sphere();
     floor.transform = Matrix4::scaling(10., 0.01, 10.);
     let mut floor_material = Material::new();
-    floor_material.casts_shadows = false;
     floor_material.color = Color::new(1., 0.9, 0.9);
     floor_material.specular = 0.;
     floor.set_material(floor_material);
@@ -37,7 +36,6 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut middle = Object::sphere();
     middle.transform = Matrix4::translation(-0.5, 1., 0.5);
     let mut middle_material = Material::new();
-    middle_material.casts_shadows = false;
     middle_material.color = Color::new(0.1, 1., 0.5);
     middle_material.diffuse = 0.7;
     middle_material.specular = 0.3;
@@ -47,17 +45,14 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut right = Object::sphere();
     right.transform = Matrix4::translation(1.5, 0.5, -0.5) * Matrix4::scaling(0.5, 0.5, 0.5);
     let mut right_material = Material::new();
-    right_material.casts_shadows = false;
     right_material.color = Color::new(0.5, 1., 0.1);
     right_material.diffuse = 0.7;
     right_material.specular = 0.3;
-    right.set_material(right_material);
     world.add_object(right);
 
     let mut left = Object::sphere();
     left.transform = Matrix4::translation(-1.5, 0.33, -0.75) * Matrix4::scaling(0.33, 0.33, 0.33);
     let mut left_material = Material::new();
-    left_material.casts_shadows = false;
     left_material.color = Color::new(1., 0.8, 0.1);
     left_material.diffuse = 0.7;
     left_material.specular = 0.3;

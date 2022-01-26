@@ -32,8 +32,7 @@ impl<'a> Intersection<'a> {
         }
     }
 
-    // Returns the closest intersection, that is
-    // the one with the smallest non-negative t value.
+    /// Returns the closest intersection (the one with the smallest non-negative t value.)
     pub fn hit(intersections: &[Self]) -> Option<&Self> {
         intersections
             .iter()
