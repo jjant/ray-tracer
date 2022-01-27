@@ -1,3 +1,4 @@
+use examples;
 use ray_tracer::{
     camera::Camera,
     color::Color,
@@ -10,7 +11,6 @@ use ray_tracer::{
     shape::{cylinder::Cylinder, Object, Shape},
     world::World,
 };
-mod misc;
 use std::f64::{
     self,
     consts::{FRAC_PI_2, PI},
@@ -159,13 +159,16 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
         c.transform = Matrix4::rotation_y((2. * PI / slice_num as f64) * i as f64)
             * Matrix4::scaling(0.1, 1.1, 0.7)
             * Matrix4::translation(0., 0., 0.9);
-        //  c->dropShadow = false;
+        let mut material = Material::new();
+        material.casts_shadows = false;
+        c.set_material(material);
+
         group.push(c);
     }
     let mut group = Object::group(group);
 
-    //  grp.dropShadow = false;
     let mut material = Material::new();
+    material.casts_shadows = false;
     material.ambient = 0.;
     material.diffuse = 0.1;
     material.specular = 0.;
@@ -201,7 +204,7 @@ const ASPECT: f64 = 16. / 9.;
 const WIDTH: usize = 600;
 const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
-fn main() {
+pub fn main() {
     let (camera, world) = scene(WIDTH, HEIGHT);
-    misc::run_and_save_scene(module_path!(), camera, world);
+    examples::run_and_save_scene("chapter_16", camera, world);
 }

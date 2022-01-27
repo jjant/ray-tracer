@@ -6,6 +6,42 @@ edition = "2021"
 [dependencies.ray-tracer]
 path = "../ray-tracer"
 
+[lib]
+name = "examples"
+path = "./lib.rs"
+
+[[bin]]
+name = "all_examples"
+path = "./all_examples.rs"
+
+[[bin]]
+name = "chapter_2"
+path = "./chapter_2.rs"
+
+[[bin]]
+name = "chapter_5"
+path = "./chapter_5.rs"
+
+[[bin]]
+name = "chapter_6"
+path = "./chapter_6.rs"
+
+[[bin]]
+name = "chapter_7"
+path = "./chapter_7.rs"
+
+[[bin]]
+name = "chapter_8"
+path = "./chapter_8.rs"
+
+[[bin]]
+name = "chapter_9"
+path = "./chapter_9.rs"
+
+[[bin]]
+name = "chapter_10"
+path = "./chapter_10.rs"
+
 [[bin]]
 name = "chapter_11"
 path = "./chapter_11.rs"

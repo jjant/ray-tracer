@@ -1,11 +1,9 @@
+use examples;
 use ray_tracer::{
     camera::Camera, color::Color, light::Light, material::Material, math::matrix4::Matrix4,
     math::transformations, math::tuple::Tuple, pattern::Pattern, shape::Object, world::World,
 };
-mod misc;
 
-/// Scene by Manoël Trapier
-/// https://github.com/Godzil/DoRayMe/blob/45f5f8098e50ce746d4d4d130cffea1b9f98174f/tests/ch12_test.cpp
 pub fn scene(width: usize, height: usize) -> (Camera, World) {
     let mut world = World::new();
 
@@ -109,8 +107,8 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     glass_cube.transform = Matrix4::translation(0., 3.45001, 0.)
         * Matrix4::rotation_y(0.2)
         * Matrix4::scaling(0.25, 0.25, 0.25);
-    // TODO: It looks like we implement this in chapter 16.
-    // glass_cube.drop_shadow = false;
+    let mut material = Material::new();
+    material.casts_shadows = false;
     material.color = Color::new(1., 1., 0.8);
     material.ambient = 0.;
     material.diffuse = 0.3;
@@ -127,6 +125,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     lil_cube1.transform = Matrix4::translation(1., 3.35, -0.9)
         * Matrix4::rotation_y(-0.4)
         * Matrix4::scaling(0.15, 0.15, 0.15);
+    let mut material = Material::new();
     material.color = Color::new(1., 0.5, 0.5);
     material.reflective = 0.6;
     material.diffuse = 0.4;
@@ -138,6 +137,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     lil_cube2.transform = Matrix4::translation(-1.5, 3.27, 0.3)
         * Matrix4::rotation_y(0.4)
         * Matrix4::scaling(0.15, 0.07, 0.15);
+    let mut material = Material::new();
     material.color = Color::new(1., 1., 0.5);
     lil_cube2.set_material(material);
     world.add_object(lil_cube2);
@@ -147,6 +147,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     lil_cube3.transform = Matrix4::translation(0., 3.25, 1.)
         * Matrix4::rotation_y(0.4)
         * Matrix4::scaling(0.2, 0.05, 0.05);
+    let mut material = Material::new();
     material.color = Color::new(0.5, 1., 0.5);
     lil_cube3.set_material(material);
     world.add_object(lil_cube3);
@@ -156,6 +157,7 @@ pub fn scene(width: usize, height: usize) -> (Camera, World) {
     lil_cube4.transform = Matrix4::translation(-0.6, 3.4, -1.)
         * Matrix4::rotation_y(0.8)
         * Matrix4::scaling(0.05, 0.2, 0.05);
+    let mut material = Material::new();
     material.color = Color::new(0.5, 0.5, 1.);
     lil_cube4.set_material(material);
     world.add_object(lil_cube4);
@@ -229,7 +231,7 @@ const ASPECT: f64 = 16. / 9.;
 const WIDTH: usize = 400;
 const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
-fn main() {
+pub fn main() {
     let (camera, world) = scene(WIDTH, HEIGHT);
-    misc::run_and_save_scene(module_path!(), camera, world);
+    examples::run_and_save_scene("chapter_12", camera, world);
 }

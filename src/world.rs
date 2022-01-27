@@ -99,7 +99,7 @@ impl World {
 
         Intersection::hit(&self.intersect(ray))
             // Check to see if hit object is closer than the light.
-            .map(|hit| hit.t < distance)
+            .map(|hit| hit.object.material.casts_shadows && hit.t < distance)
             .unwrap_or(false)
     }
 

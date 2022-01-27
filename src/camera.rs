@@ -60,8 +60,6 @@ impl Camera {
         let mut canvas = Canvas::new(self.hsize as usize, self.vsize as usize);
         let total_pixels = self.vsize * self.hsize;
 
-        println!("Computing: {} pixels.", total_pixels);
-
         let mut total_done = 0;
         for y in 0..self.vsize {
             for x in 0..self.hsize {
@@ -72,8 +70,9 @@ impl Camera {
             }
             total_done += self.hsize;
             print!(
-                "Computed: {}({}%) pixels.\r",
+                "Computed: {}/{} ({}%) pixels.\r",
                 total_done,
+                total_pixels,
                 (100. * (total_done as f64 / total_pixels as f64)).round()
             );
             std::io::stdout().flush().unwrap();

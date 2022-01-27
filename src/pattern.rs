@@ -2,7 +2,7 @@ use crate::{color::Color, math::matrix4::Matrix4, math::tuple::Tuple, shape::Sim
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pattern {
-    transform: Matrix4,
+    pub transform: Matrix4,
     pattern_type: PatternType,
 }
 

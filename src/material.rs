@@ -16,6 +16,7 @@ pub struct Material {
     pattern: Option<Pattern>,
     pub transparency: f64,
     pub refractive_index: f64,
+    pub casts_shadows: bool,
 }
 
 impl Material {
@@ -30,6 +31,7 @@ impl Material {
             pattern: None,
             transparency: 0.,
             refractive_index: 1.,
+            casts_shadows: true,
         }
     }
 
@@ -51,7 +53,7 @@ impl PartialEq for Material {
     }
 }
 
-pub(crate) fn lighting(
+pub fn lighting(
     material: Material,
     object: SimpleObject,
     light: Light,
