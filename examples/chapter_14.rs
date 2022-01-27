@@ -13,9 +13,6 @@ use ray_tracer::{
     world::World,
 };
 
-/// Scene by Manoël Trapier
-/// https://github.com/Godzil/DoRayMe/blob/45f5f8098e50ce746d4d4d130cffea1b9f98174f/tests/ch14_test.cpp
-
 fn leg() -> Object {
     let mut s = Object::sphere();
     s.transform = Matrix4::translation(0., 0., -1.) * Matrix4::scaling(0.25, 0.25, 0.25);
