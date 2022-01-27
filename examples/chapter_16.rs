@@ -204,7 +204,7 @@ const ASPECT: f64 = 16. / 9.;
 const WIDTH: usize = 600;
 const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
-fn main() {
+pub fn main() {
     let (camera, world) = scene(WIDTH, HEIGHT);
-    examples::run_and_save_scene(module_path!(), camera, world);
+    examples::run_and_save_scene("chapter_16", camera, world);
 }

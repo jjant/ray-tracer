@@ -1,3 +1,4 @@
+use examples::output_file_path;
 use ray_tracer::{
     canvas::Canvas, color::Color, intersection::Intersection, math::tuple::Tuple, ray::Ray,
     shape::Object,
@@ -38,8 +39,8 @@ const ASPECT: f64 = 1. / 1.;
 const WIDTH: usize = 300;
 const HEIGHT: usize = (WIDTH as f64 / ASPECT) as usize;
 
-fn main() {
-    let file_name = format!("./{}.ppm", module_path!());
+pub fn main() {
+    let file_name = output_file_path("chapter_5");
     println!("Writing scene to: {}", file_name);
 
     let canvas = scene(WIDTH, HEIGHT);
