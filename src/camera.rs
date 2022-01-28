@@ -1,6 +1,6 @@
-use std::io::Write;
-
 use crate::{canvas::Canvas, math::matrix4::Matrix4, math::tuple::Tuple, ray::Ray, world::World};
+use rayon::prelude::*;
+use std::io::Write;
 
 #[derive(Clone, Copy)]
 pub struct Camera {
@@ -58,25 +58,31 @@ impl Camera {
 
     pub fn render(self, world: &World) -> Canvas {
         let mut canvas = Canvas::new(self.hsize as usize, self.vsize as usize);
-        let total_pixels = self.vsize * self.hsize;
+        // let total_pixels = self.vsize * self.hsize;
 
-        let mut total_done = 0;
-        for y in 0..self.vsize {
+        // let mut total_done = 0;
+
+        let width = canvas.width();
+        let chunks = canvas.pixels.par_chunks_mut(width);
+
+        chunks.enumerate().for_each(|(y, row)| {
             for x in 0..self.hsize {
-                let ray = self.ray_for_pixel(x, y);
+                let ray = self.ray_for_pixel(x, y as i32);
                 let color = world.color_at(ray);
 
-                canvas.write_pixel(x, y, color);
+                // Basically inlined:
+                //  canvas.write_pixel(x, y, color);
+                row[x as usize] = color;
             }
-            total_done += self.hsize;
-            print!(
-                "Computed: {}/{} ({}%) pixels.\r",
-                total_done,
-                total_pixels,
-                (100. * (total_done as f64 / total_pixels as f64)).round()
-            );
-            std::io::stdout().flush().unwrap();
-        }
+            // total_done += self.hsize;
+            // print!(
+            //     "Computed: {}/{} ({}%) pixels.\r",
+            //     total_done,
+            //     total_pixels,
+            //     (100. * (total_done as f64 / total_pixels as f64)).round()
+            // );
+            // std::io::stdout().flush().unwrap();
+        });
 
         canvas
     }
